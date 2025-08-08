@@ -1,0 +1,57 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Application",
+            "request": "launch",
+            "mainClass": "com.r13a.devpr2025.Application",
+            "projectName": "greeter"
+        },
+        {
+            "type": "java",
+            "name": "PaymentsBackClient",
+            "request": "launch",
+            "mainClass": "com.r13a.devpr2025.grpcservices.PaymentsBackClient",
+            "projectName": "greeter"
+        },
+        {
+            "type": "java",
+            "name": "Current File - Run Continuous",
+            "request": "launch",
+            "mainClass": "${file}",
+            "env": {
+                "JDT_LAUNCHWRAP_MICRONAUT_CONTINUOUS": "true"
+            }
+        },
+        {
+            "type": "java",
+            "name": "Application - Continuous",
+            "request": "launch",
+            "mainClass": "com.r13a.devpr2025.Application",
+            "env": {
+                "JDT_LAUNCHWRAP_MICRONAUT_CONTINUOUS": "true"
+            },
+            "projectName": "greeter"
+        },
+        {
+            "type": "java",
+            "name": "PaymentsBackClient - Continuous",
+            "request": "launch",
+            "mainClass": "com.r13a.devpr2025.grpcservices.PaymentsBackClient",
+            "env": {
+                "JDT_LAUNCHWRAP_MICRONAUT_CONTINUOUS": "true"
+            },
+            "projectName": "greeter"
+        }
+    ]
+}

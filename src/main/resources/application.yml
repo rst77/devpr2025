@@ -1,0 +1,6 @@
+micronaut:
+  server:
+    port: 8000
+grpc:
+  server:
+    port: 5000
