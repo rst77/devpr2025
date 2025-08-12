@@ -1,14 +1,17 @@
 package com.r13a.devpr2025.grpcservices;
 
-import java.net.http.HttpResponse;
-import java.util.EmptyStackException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import com.r13a.devpr2025.client.PaymentsClient;
+import com.r13a.devpr2025.grpc.ControlData;
 import com.r13a.devpr2025.grpc.PaymentData;
+import com.r13a.devpr2025.grpc.PaymentList;
 import com.r13a.devpr2025.grpc.PaymentServiceGrpc;
 import com.r13a.devpr2025.grpc.PaymentServiceGrpc.PaymentServiceStub;
 
@@ -16,7 +19,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;
-import io.netty.util.internal.ThreadExecutorMap;
 
 public class PaymentsBackClient {
 
@@ -29,51 +31,63 @@ public class PaymentsBackClient {
     public static void main(String[] args) throws InterruptedException {
         logger.info(">>>---> Iniciando cliente");
 
+        String defaultURL = System.getenv("LB_URL");
+        if (defaultURL == null) {
+            defaultURL = "http://localhost";
+        }
+        logger.info(">>>---> URL LD: " + defaultURL); 
+
         final CountDownLatch done = new CountDownLatch(2);
 
         // Dados para conectar ao serivdor.
         ManagedChannel channel = ManagedChannelBuilder
-                .forAddress("localhost", 5000)
+                .forAddress(defaultURL, 5000)
                 .usePlaintext()
                 .build();
 
         PaymentServiceStub stub = PaymentServiceGrpc.newStub(channel);
 
         // Processaento dos dados que serão enviados pelo servidor.
-        ClientResponseObserver<PaymentData, PaymentData> clientResponseObserver = new ClientResponseObserver<PaymentData, PaymentData>() {
-
-            ClientCallStreamObserver<PaymentData> requestStream;
+        ClientResponseObserver<PaymentList, PaymentList> clientResponseObserver = new ClientResponseObserver<PaymentList, PaymentList>() {
 
             @Override
-            public void beforeStart(final ClientCallStreamObserver<PaymentData> requestStream) {
-                this.requestStream = requestStream;
-
-                //requestStream.disableAutoRequestWithInitial(1);
+            public void beforeStart(final ClientCallStreamObserver<PaymentList> requestStream) {
 
                 requestStream.setOnReadyHandler(new Runnable() {
                     @Override
                     public void run() {
                         Thread.ofVirtual().start(() -> {
-                            //logger.info(">>>---> iniciando guarda de resposta");
+                            // logger.info(">>>---> iniciando guarda de resposta");
                             while (true) {
                                 if (!resultado.empty()) {
-                                    //logger.info(">>>---> Informando resultado");
+                                    // logger.info(">>>---> Informando resultado");
+                                    List<PaymentData> lista = new ArrayList<>();
+                                    int contador = 0;
+                                    while (!resultado.empty() && contador < 50) { 
+                                        lista.add(resultado.pop());
+                                        contador++;
+                                    }
+                                    if (lista.size() > 1)
+                                        System.out.println("devolvendo " + lista.size());
+                                    PaymentList pl = PaymentList.newBuilder()
+                                                        .setSize(lista.size())
+                                                        .addAllItems(lista)
+                                                        .build();
+                                    requestStream.onNext(pl);
 
-                                    requestStream.onNext(resultado.pop());
                                 }
                             }
-                        });                        
-                        logger.info(">>>---> NO AR!");
+                        });
+                        logger.info(">>>---> NO AR fluxo requisicoes!");
                     }
                 });
-
             }
 
             @Override
-            public void onNext(PaymentData value) {
+            public void onNext(PaymentList value) {
 
-                PaymentsBackClient.processamento.add(value);
-                //requestStream.request(1);
+                PaymentsBackClient.processamento.addAll(value.getItemsList());
+                // requestStream.request(1);
 
             }
 
@@ -91,38 +105,101 @@ public class PaymentsBackClient {
 
         };
 
+        // Processaento dos dados que serão enviados pelo servidor.
+        ClientResponseObserver<ControlData, ControlData> controlResponseObserver = new ClientResponseObserver<ControlData, ControlData>() {
+
+            @Override
+            public void beforeStart(final ClientCallStreamObserver<ControlData> requestStream) {
+
+                requestStream.setOnReadyHandler(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Nada implementado aqui.
+                        logger.info(">>>---> NO AR control estado!");
+                    }
+                });
+
+            }
+
+            @Override
+            public void onNext(ControlData value) {
+
+                PaymentsClient.setStatus(value);
+            }
+
+            @Override
+            public void onCompleted() {
+                logger.info("All Done");
+                done.countDown();
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                t.printStackTrace();
+                done.countDown();
+            }
+
+        };
+
         Thread.ofVirtual().start(() -> {
-            logger.info(">>>---> iniciando guarda de processamento");
-            
+            logger.info(">>>---> iniciando guarda de processamento de pagamento.");
             while (true) {
-                if (!processamento.empty()) {
+                if (!processamento.empty() && (PaymentsClient.isAReady() || PaymentsClient.isBReady())) {
+                    try {
                         PaymentData pd = processamento.pop();
-                    Thread virtualThread = Thread.ofVirtual().start(() -> {
-                        PaymentsClient pc = new PaymentsClient();
-                        pc.processPayment(pd);
-                    });
-                    //System.out.print("[" + Thread.activeCount() + "] ");
-                    ;
-                    //while (Thread.activeCount() > 1500) {}
+
+                        Thread virtualThread = Thread.ofVirtual().start(() -> {
+                            PaymentsClient pc = new PaymentsClient();
+                            pc.processPayment(pd);
+                        });
+
+                        virtualThread.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
 
         Thread.ofVirtual().start(() -> {
-            logger.info(">>>---> iniciando guarda de health dos servicos");
-            
+            logger.info(">>>---> iniciando guarda do rebote.");
+
             while (true) {
-                PaymentsClient pc = new PaymentsClient();
-                pc.processHealth();
-                try {
-					Thread.sleep(java.time.Duration.ofSeconds(5));
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+                if (!rebote.empty() && PaymentsClient.isAlmostReady())
+                {
+                    try {
+                        PaymentsClient pc = new PaymentsClient();
+                        PaymentData pd = rebote.pop();
+
+                        Thread virtualThread = Thread.ofVirtual().start(() -> {
+                            pc.processPayment(pd);
+                            //System.out.print("@");
+                        });
+                        virtualThread.join();
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
 
+        Thread.ofVirtual().start(() -> {
+            logger.info(">>>---> iniciando guarda de monitoracao.");
+
+            while (true) {
+                try {
+                    logger.info(">>>---> Threads: " + Thread.activeCount());
+
+                    Thread.sleep(Duration.ofSeconds(10));
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        stub.streamControls(controlResponseObserver);
         stub.streamPayments(clientResponseObserver);
 
         done.await();

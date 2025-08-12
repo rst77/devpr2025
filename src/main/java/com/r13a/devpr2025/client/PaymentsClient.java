@@ -4,21 +4,35 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.r13a.devpr2025.grpc.ControlData;
 import com.r13a.devpr2025.grpc.PaymentData;
-import com.r13a.devpr2025.grpc.PaymentData.Builder;
 import com.r13a.devpr2025.grpcservices.PaymentsBackClient;
 
 public class PaymentsClient {
     private static final Logger logger = Logger.getLogger(PaymentsClient.class.getName());
 
-    private final String urlA = "http://localhost:8001";
-    private final String urlB = "http://localhost:8002";
+    private static String urlA = null;
+    private static String urlB = null;
+
+    public PaymentsClient() {
+
+        String defaultURL = System.getenv("PAYMENT_PROCESSOR_DEFAULT");
+        if (defaultURL != null) {
+            PaymentsClient.urlA = defaultURL;
+        } else {
+            PaymentsClient.urlA = "http://localhost:8001";
+        }
+        String fallbackURL = System.getenv("PAYMENT_PROCESSOR_FALLBACK");
+        if (fallbackURL != null) {
+            PaymentsClient.urlB = fallbackURL;
+        } else {
+            PaymentsClient.urlB = "http://localhost:8002";
+        }
+
+    }
 
     // Valores de controle do comportamento.
     private static boolean ativoA = true;
@@ -28,6 +42,14 @@ public class PaymentsClient {
     private static int connTimeoutB = 30;
     private static int reqTimeoutB = 100;
     HttpRequest.BodyPublisher body;
+
+    public static void setStatus(ControlData cd) {
+        // logger.info(">>>---> Atualizado status");
+        ativoA = cd.getStatusA() == 1 ? true : false;
+        reqTimeoutA = cd.getReqTimeoutA();
+        ativoB = cd.getStatusB() == 1 ? true : false;
+        reqTimeoutB = cd.getReqTimeoutB();
+    }
 
     public void processPayment(PaymentData pd) {
 
@@ -39,16 +61,16 @@ public class PaymentsClient {
                         "}");
 
         try {
-            if (ativoA && reqTimeoutA < 1000) {
+            if (isAReady()) {
                 chamaA(pd);
-            } else if (!ativoA && ativoB && reqTimeoutB < 1000) {
+            } else if (!isAReady() && isBReady()) {
                 chamaB(pd);
             } else {
                 PaymentsBackClient.rebote.add(pd);
             }
 
         } catch (Exception e) {
-            //System.out.println(">>>---> " + e.getMessage());
+            // System.out.println(">>>---> " + e.getMessage());
         }
 
     }
@@ -60,8 +82,8 @@ public class PaymentsClient {
                 .build();
 
         HttpRequest requestA = HttpRequest.newBuilder()
-                .uri(URI.create(urlA + "/payments"))
-                .timeout(java.time.Duration.ofMillis(reqTimeoutA))
+                .uri(URI.create(PaymentsClient.urlA + "/payments"))
+                .timeout(java.time.Duration.ofMillis(10000 + 100))
                 .header("Content-Type", "application/json")
                 .POST(body)
                 .build();
@@ -69,18 +91,22 @@ public class PaymentsClient {
         clientA.sendAsync(requestA, BodyHandlers.ofString())
                 .thenAcceptAsync(responseA -> {
 
-                    System.out.print("1 ");
                     if (responseA.statusCode() == 200)
                         PaymentsBackClient.resultado.add(pd.toBuilder().setService(1).build());
 
                 })
                 .whenComplete((reponseA, exA) -> {
                     if (exA != null) {
-                        System.err.print("E1 ");
-                        PaymentsBackClient.rebote.add(pd);
+                        System.err.println("\n E1 " + exA.getMessage());
+                        if (!isBReady())
+                            PaymentsBackClient.rebote.add(pd);
+                        else
+                            chamaB(pd);
                     }
                 })
                 .join();
+        // System.out.print("1 ");
+
     }
 
     public void chamaB(PaymentData pd) {
@@ -89,8 +115,8 @@ public class PaymentsClient {
                 .build();
 
         HttpRequest requestB = HttpRequest.newBuilder()
-                .uri(URI.create(urlB + "/payments"))
-                .timeout(java.time.Duration.ofMillis(reqTimeoutB))
+                .uri(URI.create(PaymentsClient.urlB + "/payments"))
+                .timeout(java.time.Duration.ofMillis(10000 + 100))
                 .header("Content-Type", "application/json")
                 .POST(body)
                 .build();
@@ -98,85 +124,56 @@ public class PaymentsClient {
         clientB.sendAsync(requestB, BodyHandlers.ofString())
                 .thenAcceptAsync(responseB -> {
 
-                    System.out.print("2 ");
                     if (responseB.statusCode() == 200)
                         PaymentsBackClient.resultado.add(pd.toBuilder().setService(2).build());
+                    else
+                        PaymentsBackClient.rebote.add(pd);
 
                 })
                 .whenComplete((reponseA, exA) -> {
                     if (exA != null) {
-                        System.err.print("E2 ");
+                        System.err.print("E2 " + exA.getMessage());
                         PaymentsBackClient.rebote.add(pd);
                     }
                 })
                 .join();
+        // System.out.print("2 ");
 
     }
 
-    public void processHealth() {
+    public static boolean isAlmostReady() {
 
-        HttpClient clientA = HttpClient.newBuilder()
-                .connectTimeout(java.time.Duration.ofMillis(2000))
-                .build();
+        if (isAReady() || isBReady())
+            return true;
 
-        HttpRequest requestA = HttpRequest.newBuilder()
-                .uri(URI.create(urlA + "/payments/service-health"))
-                .timeout(java.time.Duration.ofMillis(3000))
-                .header("Content-Type", "application/json")
-                .GET()
-                .build();
+        return false;
 
-        HttpClient clientB = HttpClient.newBuilder()
-                .connectTimeout(java.time.Duration.ofMillis(2000))
-                .build();
+    }
 
-        HttpRequest requestB = HttpRequest.newBuilder()
-                .uri(URI.create(urlB + "/payments/service-health"))
-                .timeout(java.time.Duration.ofMillis(3000))
-                .header("Content-Type", "application/json")
-                .GET()
-                .build();
+    public static boolean isFullReady() {
 
-        try {
+        if (isAReady() && isBReady())
+            return true;
 
-            HttpResponse<String> respA = clientA.send(requestA, BodyHandlers.ofString());
-            record Status(boolean failing, int minResponseTime) {
-            }
-            ObjectMapper mapa = new ObjectMapper();
-            Status registroA = null;
-            Status registroB = null;
+        return false;
 
-            if (respA.statusCode() == 200) {
-                registroA = mapa.readValue(respA.body(), Status.class);
+    }
 
-                System.out.println("\nAntes - ativoA: " + ativoA);
-                System.out.println("Antes - reqTimeoutA: " + reqTimeoutA);
+    public static boolean isAReady() {
 
-                ativoA = !registroA.failing;
-                reqTimeoutA = registroA.minResponseTime < 100 ? 100 : registroA.minResponseTime;
+        if (PaymentsClient.ativoA)
+            return true;
 
-                System.out.println("Depois - ativoA: " + ativoA);
-                System.out.println("Depois - reqTimeoutA: " + reqTimeoutA);
+        return false;
 
-            }
+    }
 
-            HttpResponse<String> respB = clientB.send(requestB, BodyHandlers.ofString());
-            if (respB.statusCode() == 200) {
-                registroB = mapa.readValue(respB.body(), Status.class);
+    public static boolean isBReady() {
 
-                System.out.println("\nAntes - ativoB: " + ativoB);
-                System.out.println("Antes - reqTimeoutB: " + reqTimeoutB);
+        if (PaymentsClient.ativoB)
+            return true;
 
-                ativoB = !registroB.failing;
-                reqTimeoutB = registroB.minResponseTime < 100 ? 100 : registroB.minResponseTime;
-
-                System.out.println("Depois - ativoB: " + ativoB);
-                System.out.println("Depois - reqTimeoutB: " + reqTimeoutB);
-            }
-
-        } catch (Exception e) {
-            logger.info(">>>---> " + e.getMessage());
-        }
+        return false;
 
     }
 

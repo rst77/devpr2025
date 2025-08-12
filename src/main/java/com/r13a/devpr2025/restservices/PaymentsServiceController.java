@@ -10,6 +10,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.r13a.devpr2025.client.HealthClient;
+import com.r13a.devpr2025.client.PaymentsClient;
 import com.r13a.devpr2025.entity.Ticket;
 import com.r13a.devpr2025.grpc.PaymentData;
 import com.r13a.devpr2025.grpc.PaymentDataOrBuilder;
@@ -29,29 +31,6 @@ import jakarta.inject.Inject;
 @Controller("/")
 public class PaymentsServiceController {
   private static final Logger logger = Logger.getLogger(PaymentsServiceController.class.getName());
-
-  /*
-   * @Get("/payments")
-   * 
-   * @Produces(MediaType.APPLICATION_JSON)
-   * public GreeterResponse send(
-   * 
-   * @Nullable
-   * 
-   * @QueryValue(value = "name")
-   * Optional<String> name
-   * ){
-   * 
-   * logger.info(">>---> recebida mensagem: " + name.get());
-   * PaymentsFrontServer.list.add(name.get());
-   * //GreeterRequest request =
-   * GreeterRequest.newBuilder().setName(name.get()).build();
-   * 
-   * //GreeterReply x = greeterServiceStub.send(request);
-   * 
-   * return new GreeterResponse("OK");
-   * }
-   */
 
   @Post("payments/")
   @Produces(MediaType.TEXT_PLAIN)

@@ -2,23 +2,149 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>greeter</groupId>
-  <artifactId>greeter</artifactId>
+  <groupId>devpr2025</groupId>
+  <artifactId>devpr2025</artifactId>
   <version>0.1</version>
   <packaging>${packaging}</packaging>
 
-  <parent>
+ <parent>
     <groupId>io.micronaut.platform</groupId>
     <artifactId>micronaut-parent</artifactId>
     <version>4.9.1</version>
   </parent>
+
   <properties>
     <packaging>jar</packaging>
     <jdk.version>21</jdk.version>
     <release.version>21</release.version>
     <micronaut.version>4.9.1</micronaut.version>
-    <exec.mainClass>com.r13a.devpr2025.Application</exec.mainClass>
+    <exec.mainClass>com.r13a.devpr2025.api.ApiService</exec.mainClass>
   </properties>
+
+  <profiles>
+
+    <profile>
+      <id>native-a-pgo</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <goals>
+                  <goal>compile-no-fork</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <skipNativeTests>true</skipNativeTests>
+              <imageName>api-instrumentedApp</imageName>
+              <buildArgs>
+                  <buildArg>--pgo-instrument</buildArg>
+              </buildArgs>
+              <mainClass>com.r13a.devpr2025.api.ApiService</mainClass>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>native-c-pgo</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <goals>
+                  <goal>compile-no-fork</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <skipNativeTests>true</skipNativeTests>
+              <imageName>cli-instrumentedApp</imageName>
+              <buildArgs>
+                  <buildArg>--pgo-instrument</buildArg>
+              </buildArgs>
+              <mainClass>com.r13a.devpr2025.grpcservices.PaymentsBackClient</mainClass>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+
+    <profile>
+      <id>native-a-opt</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <goals>
+                  <goal>compile-no-fork</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <skipNativeTests>true</skipNativeTests>
+              <imageName>api-App</imageName>
+              <buildArgs>
+                  <buildArg>--pgo=api-myprofile.iprof --gc=G1</buildArg>
+              </buildArgs>
+              <mainClass>com.r13a.devpr2025.api.ApiService</mainClass>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>native-c-opt</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <goals>
+                  <goal>compile-no-fork</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <skipNativeTests>true</skipNativeTests>
+              <imageName>cli-App</imageName>
+              <buildArgs>
+                  <buildArg>--pgo=cli-myprofile.iprof --gc=G1</buildArg>
+              </buildArgs>
+              <mainClass>com.r13a.devpr2025.grpcservices.PaymentsBackClient</mainClass>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+  </profiles>
 
   <repositories>
     <repository>
@@ -28,6 +154,11 @@
   </repositories>
 
   <dependencies>
+    <dependency>
+        <groupId>javax.json</groupId>
+        <artifactId>javax.json-api</artifactId>
+        <version>1.1.4</version>
+    </dependency>
     <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
@@ -91,42 +222,25 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>io.micronaut.maven</groupId>
-        <artifactId>micronaut-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <!-- Uncomment to enable incremental compilation -->
-          <!-- <useIncrementalCompilation>false</useIncrementalCompilation> -->
-
-          <annotationProcessorPaths combine.children="append">
-            <path>
-              <groupId>io.micronaut.serde</groupId>
-              <artifactId>micronaut-serde-processor</artifactId>
-              <version>${micronaut.serialization.version}</version>
-              <exclusions>
-                <exclusion>
-                  <groupId>io.micronaut</groupId>
-                  <artifactId>micronaut-inject</artifactId>
-                </exclusion>
-              </exclusions>
-            </path>
-          </annotationProcessorPaths>
-          <compilerArgs>
-            <arg>-Amicronaut.processing.group=greeter</arg>
-            <arg>-Amicronaut.processing.module=greeter</arg>
-          </compilerArgs>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>com.github.os72</groupId>
         <artifactId>protoc-jar-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>build-native</id>
+            <goals>
+              <goal>compile-no-fork</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+        </executions>
+        <configuration>
+            <mainClass>com.r13a.devpr2025.api.ApiService</mainClass>
+        </configuration>
       </plugin>
     </plugins>
   </build>

@@ -10,10 +10,15 @@ option objc_class_prefix = "HLW";
 package com.r13a.devpr2025.grpc;
 
 service PaymentService {
-  rpc streamPayments (stream PaymentData) returns (stream PaymentData);
+  rpc streamPayments (stream PaymentList) returns (stream PaymentList);
   rpc streamControls (stream ControlData) returns (stream ControlData);
 }
  
+message PaymentList {
+  int32 size = 1;
+  repeated PaymentData items = 2;
+}
+
 message PaymentData {
   string correlationId = 1;
   double amount = 2;
@@ -23,7 +28,9 @@ message PaymentData {
 }
 
 message ControlData {
-  int32 service = 1;
-  string requestedAt = 2;
-  int32 status = 3;
+  int32 statusA = 1;
+  int32 reqTimeoutA = 2;
+  int32 statusB = 3;
+  int32 reqTimeoutB = 4;
+  int32 observer = 5;
 }

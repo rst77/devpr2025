@@ -1,14 +1,15 @@
 package com.r13a.devpr2025.grpcservices;
 
-import java.security.Timestamp;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.logging.Logger;
 
+import com.r13a.devpr2025.client.HealthClient;
+import com.r13a.devpr2025.client.Semaforo;
 import com.r13a.devpr2025.grpc.ControlData;
 import com.r13a.devpr2025.grpc.PaymentData;
+import com.r13a.devpr2025.grpc.PaymentList;
 import com.r13a.devpr2025.grpc.PaymentServiceGrpc.PaymentServiceImplBase;
 import com.r13a.devpr2025.lista.BackedListListener;
 import com.r13a.devpr2025.lista.BackedObservableList;
@@ -16,33 +17,49 @@ import com.r13a.devpr2025.lista.ListChangeEvent;
 
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
-import jakarta.inject.Singleton;
 
 
-@Singleton
+
+
 public class PaymentsFrontServer extends PaymentServiceImplBase {
+
+    Semaforo semaforoEnvio = new Semaforo();
+    Semaforo semaforoControle = new Semaforo();
 
     private static final Logger logger = Logger.getLogger(PaymentsFrontServer.class.getName());
 
-    public static final BackedObservableList<PaymentData> list = new BackedObservableList<PaymentData>();
-    public static final Map<Long,PaymentData> result = new HashMap<Long,PaymentData>();
+    public static final BackedObservableList<PaymentData> list = new BackedObservableList<>(BackedObservableList.Notificacao.SEQUENCIAL);
+    public static final Map<Long,PaymentData> result = new HashMap<>();
     
+    public static final BackedObservableList<ControlData> cdList = new BackedObservableList<>(BackedObservableList.Notificacao.TODOS);
+    private ControlData cd;
 
     ServerCallStreamObserver<PaymentData> serverCallStreamObserver = null;
+    ServerCallStreamObserver<ControlData> serverCallStreamObserverCD = null;
+
+    public PaymentsFrontServer() {
+        Thread.ofVirtual().start(() -> {
+            logger.info(">>>---> iniciando guarda de health dos servicos.");
+
+            HealthClient hc = new HealthClient();
+            while (true) {
+                try {
+                    Thread.sleep(java.time.Duration.ofSeconds(5));
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                cd = hc.processHealth();
+                if (cd != null)
+                    cdList.add(cd);
+            }
+        });        
+    }
 
     @Override
     public StreamObserver<ControlData> streamControls(StreamObserver<ControlData> responseObserver) {
-        // TODO Auto-generated method stub
-        return super.streamControls(responseObserver);
-    }
 
-
-    @Override
-    public StreamObserver<PaymentData> streamPayments(StreamObserver<PaymentData> responseObserver) {
-
-        serverCallStreamObserver = (ServerCallStreamObserver<PaymentData>) responseObserver;
-
-        //serverCallStreamObserver.disableAutoRequest();
+        serverCallStreamObserverCD = (ServerCallStreamObserver<ControlData>) responseObserver;
 
         // Controle que garante a saude das chamadas.
         class OnReadyHandler implements Runnable {
@@ -50,31 +67,25 @@ public class PaymentsFrontServer extends PaymentServiceImplBase {
 
             @Override
             public void run() {
-                if (serverCallStreamObserver.isReady() && !wasReady) {
+                if (serverCallStreamObserverCD.isReady() && !wasReady) {
                     wasReady = true;
-                    //serverCallStreamObserver.request(1);
                 }
             }
         }
 
         final OnReadyHandler onReadyHandler = new OnReadyHandler();
-        serverCallStreamObserver.setOnReadyHandler(onReadyHandler);
+        serverCallStreamObserverCD.setOnReadyHandler(onReadyHandler);
 
         // Subscreve a lista em memória para receber notificacoes de inclusoes
-        BackedListListener<PaymentData> bList = new BackedListListener<PaymentData>() {
+        BackedListListener<ControlData> bList = new BackedListListener<ControlData>() {
 
             @Override
-            public void setOnChanged(ListChangeEvent<PaymentData> event) {
+            public void setOnChanged(ListChangeEvent<ControlData> event) {
                 if (event.wasAdded()) {
                     event.getChangeList().forEach(e -> {
-
-                        //logger.info(">>---> notificada adicao =" + e.getCorrelationId());
-                        System.out.print(".");
-                        while (!Semaforo.getLock()) {}
-
+                        while (!semaforoControle.getLock()) {}
                         responseObserver.onNext(e);
-                        Semaforo.releaseLock();
-
+                        semaforoEnvio.releaseLock();
                     });
                 }
                 if (event.wasRemoved()) {
@@ -87,17 +98,67 @@ public class PaymentsFrontServer extends PaymentServiceImplBase {
             }
 
         };
+        cdList.addListener(bList);
+
+        // Retorna o stream de requisicao para poder receber nas notificacoes de completude de atividade
+        StreamObserver<ControlData> retorno = new StreamObserver<ControlData>() {
+
+			@Override
+			public void onNext(ControlData value) {
+				// TODO Auto-generated method stub
+				throw new UnsupportedOperationException("Unimplemented method 'onNext'");
+			}
+
+            @Override
+            public void onError(Throwable t) {
+                // Remove a subscricao por saida do grid
+                cdList.removeListener(bList);
+                t.printStackTrace();
+                responseObserver.onCompleted();
+            }
+
+            @Override
+            public void onCompleted() {
+                // Remove a subscricao por saida do grid
+                cdList.removeListener(bList);
+                responseObserver.onCompleted();
+            }
+
+        };
+
+        return retorno;    
+   }
+   
+
+    @Override
+    public StreamObserver<PaymentList> streamPayments(StreamObserver<PaymentList> responseObserver) {
+
+        BackedListListener<PaymentData> bList = new BackedListListener<PaymentData>() {
+
+            @Override
+            public void setOnChanged(ListChangeEvent<PaymentData> event) {
+                if (event.wasAdded()) {
+                        while (!semaforoEnvio.getLock()) {}
+                        //System.out.println(" enviando " + event.getChangeList().size());
+                        PaymentList pl = PaymentList.newBuilder()
+                                .setSize(event.getChangeList().size())
+                                .addAllItems(event.getChangeList())
+                                .build();
+                            responseObserver.onNext(pl);
+                        semaforoEnvio.releaseLock();
+                }
+            }
+
+        };
         list.addListener(bList);
 
         // Retorna o stream de requisicao para poder receber nas notificacoes de completude de atividade
-        StreamObserver<PaymentData> retorno = new StreamObserver<PaymentData>() {
+        StreamObserver<PaymentList> retorno = new StreamObserver<PaymentList>() {
 
             @Override
-            public void onNext(PaymentData request) {
-                //logger.info(">>---> resultado =" + request.getCorrelationId());
-                System.out.print("'");
-                PaymentsFrontServer.result.put(Instant.parse(request.getRequestedAt()).toEpochMilli(), request);
-                //serverCallStreamObserver.request(1);
+            public void onNext(PaymentList request) {
+                for (PaymentData o : request.getItemsList())
+                    PaymentsFrontServer.result.put(Instant.parse(o.getRequestedAt()).toEpochMilli(), o);
             }
 
             @Override
@@ -119,28 +180,5 @@ public class PaymentsFrontServer extends PaymentServiceImplBase {
         return retorno;    
     }
 
-
-}
-
-class Semaforo {
-
-    private static boolean locked = false;
-
-    public synchronized static boolean getLock() {
-
-        if (!locked) {
-            locked = true;
-            return true;
-        }
-
-        return false;
-
-    }
-
-    public synchronized static void releaseLock() {
-
-        locked = false;
-
-    }
 
 }

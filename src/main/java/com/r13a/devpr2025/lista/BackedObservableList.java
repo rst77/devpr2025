@@ -8,9 +8,14 @@ import java.util.ListIterator;
 import java.util.logging.Logger;
 
 public class BackedObservableList<T> implements List<T> {
+
+    public enum Notificacao {TODOS, SEQUENCIAL};
+
+    private Notificacao notificacao;
+
     private static final Logger logger = Logger.getLogger(BackedObservableList.class.getName());
     private static int current = 0;
-    private final List<BackedListListener> listeners = new ArrayList();
+    private final List<BackedListListener> listeners = new ArrayList<BackedListListener>();
 
     public void addListener(BackedListListener<T> listener) {
         logger.info(">>---> adicionado listener");
@@ -25,7 +30,13 @@ public class BackedObservableList<T> implements List<T> {
     private final List<T> backed;
 
     public BackedObservableList() {
-        backed = new ArrayList();
+        this.notificacao = Notificacao.TODOS;
+        backed = new ArrayList<>();
+    }
+
+    public BackedObservableList(Notificacao notificacao) {
+        this.notificacao = notificacao;
+        backed = new ArrayList<>();
     }
 
     public BackedObservableList(List<T> backed) {
@@ -37,20 +48,26 @@ public class BackedObservableList<T> implements List<T> {
         if (listeners.size() == 0)
             return;
 
-        if (current >= listeners.size())
-            current = 0;
+        if (notificacao == Notificacao.SEQUENCIAL) {
+            if (current >= listeners.size())
+                current = 0;
 
-        try{
-            listeners.get(current).setOnChanged(event);
-        } catch (IndexOutOfBoundsException e) {
-            current = 0;
-            try {
-                listeners.get(0).setOnChanged(event);
-            } catch (Exception y) { 
-                //ignora 
-                }
+            try{
+                listeners.get(current).setOnChanged(event);
+            } catch (IndexOutOfBoundsException e) {
+                current = 0;
+                try {
+                    listeners.get(0).setOnChanged(event);
+                } catch (Exception y) { 
+                    //ignora 
+                    }
+            }
+            current++;
+        } else {
+            for(BackedListListener bll : listeners) {
+                bll.setOnChanged(event);
+            }
         }
-        current++;
 
         //for (BackedListListener<T> listener : listeners) {
           //  listener.setOnChanged(event);
