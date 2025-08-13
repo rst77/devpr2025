@@ -1,5 +1,6 @@
 package com.r13a.devpr2025.grpcservices;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,9 +19,6 @@ import com.r13a.devpr2025.lista.ListChangeEvent;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 
-
-
-
 public class PaymentsFrontServer extends PaymentServiceImplBase {
 
     Semaforo semaforoEnvio = new Semaforo();
@@ -28,33 +26,16 @@ public class PaymentsFrontServer extends PaymentServiceImplBase {
 
     private static final Logger logger = Logger.getLogger(PaymentsFrontServer.class.getName());
 
-    public static final BackedObservableList<PaymentData> list = new BackedObservableList<>(BackedObservableList.Notificacao.SEQUENCIAL);
-    public static final Map<Long,PaymentData> result = new HashMap<>();
-    
-    public static final BackedObservableList<ControlData> cdList = new BackedObservableList<>(BackedObservableList.Notificacao.TODOS);
+    public static final BackedObservableList<PaymentData> list = new BackedObservableList<>(
+            BackedObservableList.Notificacao.SEQUENCIAL);
+    public static final Map<Long, PaymentData> result = new HashMap<>();
+
+    public static final BackedObservableList<ControlData> cdList = new BackedObservableList<>(
+            BackedObservableList.Notificacao.TODOS);
     private ControlData cd;
 
     ServerCallStreamObserver<PaymentData> serverCallStreamObserver = null;
     ServerCallStreamObserver<ControlData> serverCallStreamObserverCD = null;
-
-    public PaymentsFrontServer() {
-        Thread.ofVirtual().start(() -> {
-            logger.info(">>>---> iniciando guarda de health dos servicos.");
-
-            HealthClient hc = new HealthClient();
-            while (true) {
-                try {
-                    Thread.sleep(java.time.Duration.ofSeconds(5));
-                } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                cd = hc.processHealth();
-                if (cd != null)
-                    cdList.add(cd);
-            }
-        });        
-    }
 
     @Override
     public StreamObserver<ControlData> streamControls(StreamObserver<ControlData> responseObserver) {
@@ -83,9 +64,10 @@ public class PaymentsFrontServer extends PaymentServiceImplBase {
             public void setOnChanged(ListChangeEvent<ControlData> event) {
                 if (event.wasAdded()) {
                     event.getChangeList().forEach(e -> {
-                        while (!semaforoControle.getLock()) {}
+                        while (!semaforoControle.getLock()) {
+                        }
                         responseObserver.onNext(e);
-                        semaforoEnvio.releaseLock();
+                        semaforoControle.releaseLock();
                     });
                 }
                 if (event.wasRemoved()) {
@@ -100,14 +82,15 @@ public class PaymentsFrontServer extends PaymentServiceImplBase {
         };
         cdList.addListener(bList);
 
-        // Retorna o stream de requisicao para poder receber nas notificacoes de completude de atividade
+        // Retorna o stream de requisicao para poder receber nas notificacoes de
+        // completude de atividade
         StreamObserver<ControlData> retorno = new StreamObserver<ControlData>() {
 
-			@Override
-			public void onNext(ControlData value) {
-				// TODO Auto-generated method stub
-				throw new UnsupportedOperationException("Unimplemented method 'onNext'");
-			}
+            @Override
+            public void onNext(ControlData value) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'onNext'");
+            }
 
             @Override
             public void onError(Throwable t) {
@@ -126,9 +109,8 @@ public class PaymentsFrontServer extends PaymentServiceImplBase {
 
         };
 
-        return retorno;    
-   }
-   
+        return retorno;
+    }
 
     @Override
     public StreamObserver<PaymentList> streamPayments(StreamObserver<PaymentList> responseObserver) {
@@ -138,27 +120,30 @@ public class PaymentsFrontServer extends PaymentServiceImplBase {
             @Override
             public void setOnChanged(ListChangeEvent<PaymentData> event) {
                 if (event.wasAdded()) {
-                        while (!semaforoEnvio.getLock()) {}
-                        //System.out.println(" enviando " + event.getChangeList().size());
-                        PaymentList pl = PaymentList.newBuilder()
-                                .setSize(event.getChangeList().size())
-                                .addAllItems(event.getChangeList())
-                                .build();
-                            responseObserver.onNext(pl);
-                        semaforoEnvio.releaseLock();
+                    while (!semaforoEnvio.getLock()) {
+                    }
+                    // System.out.println(" enviando " + event.getChangeList().size());
+                    PaymentList pl = PaymentList.newBuilder()
+                            .setSize(event.getChangeList().size())
+                            .addAllItems(event.getChangeList())
+                            .build();
+                    responseObserver.onNext(pl);
+                    semaforoEnvio.releaseLock();
                 }
             }
 
         };
         list.addListener(bList);
 
-        // Retorna o stream de requisicao para poder receber nas notificacoes de completude de atividade
+        // Retorna o stream de requisicao para poder receber nas notificacoes de
+        // completude de atividade
         StreamObserver<PaymentList> retorno = new StreamObserver<PaymentList>() {
 
             @Override
             public void onNext(PaymentList request) {
-                for (PaymentData o : request.getItemsList())
+                for (PaymentData o : request.getItemsList()) {
                     PaymentsFrontServer.result.put(Instant.parse(o.getRequestedAt()).toEpochMilli(), o);
+                }
             }
 
             @Override
@@ -177,8 +162,7 @@ public class PaymentsFrontServer extends PaymentServiceImplBase {
             }
         };
 
-        return retorno;    
+        return retorno;
     }
-
 
 }

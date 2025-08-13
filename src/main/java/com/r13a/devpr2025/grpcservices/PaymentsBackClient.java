@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.r13a.devpr2025.client.PaymentsClient;
@@ -33,9 +34,9 @@ public class PaymentsBackClient {
 
         String defaultURL = System.getenv("LB_URL");
         if (defaultURL == null) {
-            defaultURL = "http://localhost";
+            defaultURL = "localhost";
         }
-        logger.info(">>>---> URL LD: " + defaultURL); 
+        logger.info(">>>---> URL LD: " + defaultURL);
 
         final CountDownLatch done = new CountDownLatch(2);
 
@@ -53,33 +54,34 @@ public class PaymentsBackClient {
             @Override
             public void beforeStart(final ClientCallStreamObserver<PaymentList> requestStream) {
 
-                requestStream.setOnReadyHandler(new Runnable() {
-                    @Override
-                    public void run() {
-                        Thread.ofVirtual().start(() -> {
-                            // logger.info(">>>---> iniciando guarda de resposta");
+                requestStream.setOnReadyHandler(() -> {
+                    Thread.ofVirtual().start(() -> {
+                        logger.info(">>>---> iniciando guarda de resposta");
+                        try {
                             while (true) {
                                 if (!resultado.empty()) {
-                                    // logger.info(">>>---> Informando resultado");
                                     List<PaymentData> lista = new ArrayList<>();
                                     int contador = 0;
-                                    while (!resultado.empty() && contador < 50) { 
+                                    while (!resultado.empty() && contador < 50) {
                                         lista.add(resultado.pop());
                                         contador++;
                                     }
                                     if (lista.size() > 1)
                                         System.out.println("devolvendo " + lista.size());
                                     PaymentList pl = PaymentList.newBuilder()
-                                                        .setSize(lista.size())
-                                                        .addAllItems(lista)
-                                                        .build();
+                                            .setSize(lista.size())
+                                            .addAllItems(lista)
+                                            .build();
                                     requestStream.onNext(pl);
 
                                 }
                             }
-                        });
-                        logger.info(">>>---> NO AR fluxo requisicoes!");
-                    }
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Quda da guarda de reposta.");
+                            e.printStackTrace();
+                        }
+                    });
+                    logger.info(">>>---> NO AR fluxo requisicoes!");
                 });
             }
 
@@ -87,7 +89,6 @@ public class PaymentsBackClient {
             public void onNext(PaymentList value) {
 
                 PaymentsBackClient.processamento.addAll(value.getItemsList());
-                // requestStream.request(1);
 
             }
 
@@ -123,7 +124,6 @@ public class PaymentsBackClient {
 
             @Override
             public void onNext(ControlData value) {
-
                 PaymentsClient.setStatus(value);
             }
 
@@ -144,10 +144,9 @@ public class PaymentsBackClient {
         Thread.ofVirtual().start(() -> {
             logger.info(">>>---> iniciando guarda de processamento de pagamento.");
             while (true) {
-                if (!processamento.empty() && (PaymentsClient.isAReady() || PaymentsClient.isBReady())) {
+                if (!processamento.empty() && PaymentsClient.isAlmostReady()) {
                     try {
                         PaymentData pd = processamento.pop();
-
                         Thread virtualThread = Thread.ofVirtual().start(() -> {
                             PaymentsClient pc = new PaymentsClient();
                             pc.processPayment(pd);
@@ -165,21 +164,16 @@ public class PaymentsBackClient {
             logger.info(">>>---> iniciando guarda do rebote.");
 
             while (true) {
-                if (!rebote.empty() && PaymentsClient.isAlmostReady())
-                {
-                    try {
-                        PaymentsClient pc = new PaymentsClient();
-                        PaymentData pd = rebote.pop();
+                if (!rebote.empty() && PaymentsClient.isAlmostReady()) {
 
-                        Thread virtualThread = Thread.ofVirtual().start(() -> {
-                            pc.processPayment(pd);
-                            //System.out.print("@");
-                        });
-                        virtualThread.join();
+                    PaymentsClient pc = new PaymentsClient();
+                    PaymentData pd = rebote.pop();
 
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    Thread virtualThread = Thread.ofVirtual().start(() -> {
+                        pc.processPayment(pd);
+                    });
+                    // virtualThread.join();
+
                 }
             }
         });

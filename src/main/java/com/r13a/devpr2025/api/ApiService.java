@@ -1,25 +1,5 @@
 package com.r13a.devpr2025.api;
 
-import com.sun.net.httpserver.HttpServer;
-
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.r13a.devpr2025.grpc.PaymentData;
-import com.r13a.devpr2025.grpc.PaymentServiceGrpc;
-import com.r13a.devpr2025.grpc.PaymentServiceGrpc.PaymentServiceStub;
-import com.r13a.devpr2025.grpcservices.PaymentsFrontServer;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,9 +11,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.r13a.devpr2025.client.HealthClient;
+import com.r13a.devpr2025.client.Semaforo;
+import com.r13a.devpr2025.grpc.PaymentData;
+import com.r13a.devpr2025.grpcservices.PaymentsFrontServer;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
 
 public class ApiService {
     private static final Logger logger = Logger.getLogger(ApiService.class.getName());
@@ -42,7 +38,9 @@ public class ApiService {
     int httpPort = 9999;
 
     private Server grpcServer;
-    private PaymentServiceStub stub;
+
+    private static Instant ultimoTest = Instant.now();
+    private static Semaforo health = new Semaforo();
 
     public static void main(String[] args) throws InterruptedException, IOException {
         new ApiService();
@@ -52,7 +50,7 @@ public class ApiService {
 
         HttpServer serverHttp = HttpServer.create(new InetSocketAddress(httpPort), 0);
         serverHttp.createContext("/payments", new Router());
-        serverHttp.setExecutor(null); // Creates a default executor
+        serverHttp.setExecutor( Executors.newVirtualThreadPerTaskExecutor() );
         serverHttp.start();
         logger.info("Servidor HTTP - Iniciado na porta: " + httpPort);
 
@@ -62,7 +60,18 @@ public class ApiService {
     }
 
     public void startMonitoring() {
+        logger.info(">>>---> iniciando guarda de monitoracao.");
 
+        Thread.ofVirtual().start(() -> {
+            while (true) {
+                try {
+                    HealthClient.getHealthCheck().processHealth();
+                    Thread.sleep(Duration.ofSeconds(5));
+                } catch (InterruptedException e) {
+                    logger.log(java.util.logging.Level.WARNING, "Erro na guarda de health.");
+                }
+            }
+        });
     }
 
     public void start() throws IOException {
@@ -137,15 +146,16 @@ public class ApiService {
                         int totalBackup = 0;
                         double somaBackup = 0;
 
-                        //logger.info("\n>>----->  from: " + params.get("from"));
-                        //logger.info(">>----->  to  : " + params.get("to"));
-
+                        Instant from = params.get("from") == null ? Instant.now():Instant.parse(params.get("from"));
+                        Instant to = params.get("to") == null ? Instant.now():Instant.parse(params.get("to"));
+                        logger.log(Level.INFO, ">>>---> from: {0}", from.toString());
+                        logger.log(Level.INFO, ">>>---> to: {0}", to.toString());
                         try {
                             List<Entry<Long, PaymentData>> list = PaymentsFrontServer.result
                                     .entrySet()
                                     .stream()
-                                    .filter(e -> e.getKey() >= Instant.parse(params.get("from")).toEpochMilli() &&
-                                            e.getKey() <= Instant.parse(params.get("to")).toEpochMilli())
+                                    .filter(e -> e.getKey() >= from.toEpochMilli() &&
+                                            e.getKey() <= to.toEpochMilli())
                                     .toList();
 
                             for (Entry<Long, PaymentData> d : list) {
@@ -158,7 +168,7 @@ public class ApiService {
                                 }
                             }
                         } catch (Exception e) {
-                            logger.info(">>>---> problema processamento da lista - " + e.getMessage());
+                            logger.log(Level.INFO, ">>>---> problema processamento da lista - {0}", e.getMessage());
                         }
 
                         Status a = new Status(totalDefault, somaDefault);
@@ -182,7 +192,6 @@ public class ApiService {
             } else if ("POST".equals(exchange.getRequestMethod())) {
                 InputStream is = exchange.getRequestBody();
                 byte[] bytes = is.readAllBytes();
-
                 Thread.ofVirtual().start(() -> {
 
                     record Payment(String correlationId, double amount) {
@@ -205,10 +214,13 @@ public class ApiService {
                     } catch (Exception e) {
                     }
                 });
-            } else {
+            } else
+
+            {
                 exchange.sendResponseHeaders(405, -1); // Method Not Allowed
             }
         }
+
     }
 
     public static Map<String, String> getParamMap(String query) {

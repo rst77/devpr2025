@@ -1,9 +1,7 @@
-version: "3.9"
-
 services:
   
-  api01: &api
-    image: ghcr.io/rst77/devpr2025/cli-app:2
+  api01: 
+    image: ghcr.io/rst77/devpr2025/cli-app:5
     hostname: api01
     environment:
           LB_URL: lb-server
@@ -17,16 +15,30 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "120MB"
+          cpus: "0.6"
+          memory: "125MB"
 
-  api02:
-    <<: *api
+  api02: 
+    image: ghcr.io/rst77/devpr2025/cli-app:5
     hostname: api02
+    environment:
+          LB_URL: lb-server
+          PAYMENT_PROCESSOR_FALLBACK: http://payment-processor-fallback:8080
+          PAYMENT_PROCESSOR_DEFAULT: http://payment-processor-default:8080    
+    networks:
+      - payment-processor
+      - rinha-net
+    depends_on:
+      - lb      
+    deploy:
+      resources:
+        limits:
+          cpus: "0.6"
+          memory: "125MB"
 
   lb:
     hostname: lb-server
-    image: ghcr.io/rst77/devpr2025/api-app:2
+    image: ghcr.io/rst77/devpr2025/api-app:5
     environment:
           PAYMENT_PROCESSOR_FALLBACK: http://payment-processor-fallback:8080
           PAYMENT_PROCESSOR_DEFAULT: http://payment-processor-default:8080    
@@ -39,7 +51,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
+          cpus: "0.3"
           memory: "100MB"
 
 networks:

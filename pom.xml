@@ -44,7 +44,7 @@
               <skipNativeTests>true</skipNativeTests>
               <imageName>api-instrumentedApp</imageName>
               <buildArgs>
-                  <buildArg>--pgo-instrument</buildArg>
+                  <buildArg>--pgo-instrument --gc=G1</buildArg>
               </buildArgs>
               <mainClass>com.r13a.devpr2025.api.ApiService</mainClass>
             </configuration>
@@ -74,7 +74,7 @@
               <skipNativeTests>true</skipNativeTests>
               <imageName>cli-instrumentedApp</imageName>
               <buildArgs>
-                  <buildArg>--pgo-instrument</buildArg>
+                  <buildArg>--pgo-instrument  --gc=G1</buildArg>
               </buildArgs>
               <mainClass>com.r13a.devpr2025.grpcservices.PaymentsBackClient</mainClass>
             </configuration>
@@ -83,6 +83,65 @@
       </build>
     </profile>
 
+    <profile>
+      <id>native-a-fast</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <goals>
+                  <goal>compile-no-fork</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <skipNativeTests>true</skipNativeTests>
+              <imageName>api-fast</imageName>
+              <buildArgs>
+                  <buildArg>-Ob --gc=G1</buildArg>
+              </buildArgs>
+              <mainClass>com.r13a.devpr2025.api.ApiService</mainClass>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>native-c-fast</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <goals>
+                  <goal>compile-no-fork</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <skipNativeTests>true</skipNativeTests>
+              <imageName>cli-fast</imageName>
+              <buildArgs>
+                  <buildArg>-Ob --gc=G1</buildArg>
+              </buildArgs>
+              <mainClass>com.r13a.devpr2025.grpcservices.PaymentsBackClient</mainClass>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
 
     <profile>
       <id>native-a-opt</id>
