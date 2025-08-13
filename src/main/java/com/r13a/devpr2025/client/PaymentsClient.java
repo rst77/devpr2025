@@ -8,6 +8,7 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,6 +58,9 @@ public class PaymentsClient {
 
     public void processPayment(PaymentData pd) {
 
+        // Ajusta a hora da chamada
+        pd = pd.toBuilder().setRequestedAt(Instant.now().toString()).build();
+
         body = BodyPublishers.ofString(
                 "{" +
                         "\"correlationId\": \"" + pd.getCorrelationId() + "\"," +
@@ -95,20 +99,14 @@ public class PaymentsClient {
 
             HttpResponse<String> resp = clientA.send(requestA, BodyHandlers.ofString());
 
-            if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
+            if (resp.statusCode() >= 200 && resp.statusCode() < 300)
                 PaymentsBackClient.resultado.add(pd.toBuilder().setService(1).build());
-            }
-            else if (!isBReady())
-                PaymentsBackClient.rebote.add(pd);
             else
-                chamaB(pd);
+                processPayment(pd);
 
         } catch (IOException | InterruptedException ex) {
             logger.log(Level.INFO, ">>>---> Erro na chamada do payment DEFAULT - {0} / {1}", new Object[] { ex.getMessage(), ex.getClass().toString() });
-            if (!isBReady())
-                PaymentsBackClient.rebote.add(pd);
-            else
-                chamaB(pd);
+                processPayment(pd);
 
         }
     }
@@ -171,10 +169,10 @@ public class PaymentsClient {
 
     public static boolean isBReady() {
 
-        if (PaymentsClient.ativoB)
+        //if (PaymentsClient.ativoB)
             return true;
 
-        return false;
+        //return false;
 
     }
 

@@ -61,13 +61,7 @@ public class PaymentsBackClient {
                             while (true) {
                                 if (!resultado.empty()) {
                                     List<PaymentData> lista = new ArrayList<>();
-                                    int contador = 0;
-                                    while (!resultado.empty() && contador < 50) {
-                                        lista.add(resultado.pop());
-                                        contador++;
-                                    }
-                                    if (lista.size() > 1)
-                                        System.out.println("devolvendo " + lista.size());
+                                    lista.add(resultado.pop());
                                     PaymentList pl = PaymentList.newBuilder()
                                             .setSize(lista.size())
                                             .addAllItems(lista)
@@ -112,12 +106,9 @@ public class PaymentsBackClient {
             @Override
             public void beforeStart(final ClientCallStreamObserver<ControlData> requestStream) {
 
-                requestStream.setOnReadyHandler(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Nada implementado aqui.
-                        logger.info(">>>---> NO AR control estado!");
-                    }
+                requestStream.setOnReadyHandler(() -> {
+                    // Nada implementado aqui.
+                    logger.info(">>>---> NO AR control estado!");
                 });
 
             }

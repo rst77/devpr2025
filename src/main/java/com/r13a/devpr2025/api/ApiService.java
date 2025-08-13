@@ -145,6 +145,10 @@ public class ApiService {
                         double somaDefault = 0;
                         int totalBackup = 0;
                         double somaBackup = 0;
+                        Instant momento = Instant.now();
+                        
+                        while (Instant.now().isBefore(momento.plusMillis(1400))) { 
+                        }
 
                         Instant from = params.get("from") == null ? Instant.now():Instant.parse(params.get("from"));
                         Instant to = params.get("to") == null ? Instant.now():Instant.parse(params.get("to"));
@@ -154,8 +158,8 @@ public class ApiService {
                             List<Entry<Long, PaymentData>> list = PaymentsFrontServer.result
                                     .entrySet()
                                     .stream()
-                                    .filter(e -> e.getKey() >= from.toEpochMilli() &&
-                                            e.getKey() <= to.toEpochMilli())
+                                    .filter(e -> e.getKey() > from.toEpochMilli() &&
+                                            e.getKey() < to.toEpochMilli())
                                     .toList();
 
                             for (Entry<Long, PaymentData> d : list) {
@@ -185,7 +189,7 @@ public class ApiService {
                         mapa.writeValue(os, r);
                         os.close();
                     } catch (Exception e) {
-                        logger.info(">>>---> problema processamento relatorio - " + e.getMessage());
+                        logger.log(Level.INFO, ">>>---> problema processamento relatorio - {0}", e.getMessage());
                     }
                 });
 

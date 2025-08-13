@@ -164,7 +164,10 @@
               <skipNativeTests>true</skipNativeTests>
               <imageName>api-App</imageName>
               <buildArgs>
-                  <buildArg>--pgo=api-myprofile.iprof --gc=G1</buildArg>
+                  <buildArg>-O3</buildArg>
+                  <buildArg>-H:TuneInlinerExploration=11</buildArg>
+                  <buildArg>--pgo=api-myprofile.iprof</buildArg>
+                  <buildArg>--gc=G1</buildArg>
               </buildArgs>
               <mainClass>com.r13a.devpr2025.api.ApiService</mainClass>
             </configuration>
@@ -194,7 +197,10 @@
               <skipNativeTests>true</skipNativeTests>
               <imageName>cli-App</imageName>
               <buildArgs>
-                  <buildArg>--pgo=cli-myprofile.iprof --gc=G1</buildArg>
+                  <buildArg>-O3</buildArg>
+                  <buildArg>-H:TuneInlinerExploration=11</buildArg>
+                  <buildArg>--pgo=cli-myprofile.iprof</buildArg>
+                  <buildArg>--gc=G1</buildArg>
               </buildArgs>
               <mainClass>com.r13a.devpr2025.grpcservices.PaymentsBackClient</mainClass>
             </configuration>
