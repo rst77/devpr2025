@@ -69,16 +69,16 @@ public class PaymentsClient {
                         "}");
 
         try {
-            if (isAReady()) {
+            if (isAReady() && (isBReady() && (reqTimeoutA/reqTimeoutB) < 2)) {
                 chamaA(pd);
-            } else if (!isAReady() && isBReady()) {
+            } else if (!isAReady() && isBReady() ) {
                 chamaB(pd);
             } else {
                 PaymentsBackClient.rebote.add(pd);
             }
 
         } catch (Exception e) {
-            // System.out.println(">>>---> " + e.getMessage());
+            logger.log(Level.WARNING, "Problemas no processamento de decisao do cliente.");
         }
 
     }
@@ -92,7 +92,7 @@ public class PaymentsClient {
 
             HttpRequest requestA = HttpRequest.newBuilder()
                     .uri(URI.create(PaymentsClient.urlA + "/payments"))
-                    //.timeout(java.time.Duration.ofMillis(40000))
+                    .timeout(java.time.Duration.ofSeconds(2))
                     .header("Content-Type", "application/json")
                     .POST(body)
                     .build();
@@ -119,7 +119,7 @@ public class PaymentsClient {
 
             HttpRequest requestB = HttpRequest.newBuilder()
                     .uri(URI.create(PaymentsClient.urlB + "/payments"))
-                    //.timeout(java.time.Duration.ofMillis(20000))
+                    .timeout(java.time.Duration.ofSeconds(10))
                     .header("Content-Type", "application/json")
                     .POST(body)
                     .build();
@@ -169,10 +169,10 @@ public class PaymentsClient {
 
     public static boolean isBReady() {
 
-        //if (PaymentsClient.ativoB)
+        if (PaymentsClient.ativoB)
             return true;
 
-        //return false;
+        return false;
 
     }
 

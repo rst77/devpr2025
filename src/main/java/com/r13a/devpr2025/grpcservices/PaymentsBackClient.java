@@ -135,7 +135,7 @@ public class PaymentsBackClient {
         Thread.ofVirtual().start(() -> {
             logger.info(">>>---> iniciando guarda de processamento de pagamento.");
             while (true) {
-                if (!processamento.empty() && PaymentsClient.isAlmostReady()) {
+                if (!processamento.empty() && PaymentsClient.isAlmostReady() &&  Thread.activeCount() < 3001) {
                     try {
                         PaymentData pd = processamento.pop();
                         Thread virtualThread = Thread.ofVirtual().start(() -> {
