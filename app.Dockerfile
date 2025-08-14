@@ -5,8 +5,8 @@ WORKDIR /app
 RUN apk add libstdc++
 RUN apk add gcompat
 
-COPY target/api-App /app/api-App
+COPY target/app /app
 
 EXPOSE 9999
 
-CMD ["/app/api-App"]
+CMD ["/app/app"]

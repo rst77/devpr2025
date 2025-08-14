@@ -7,14 +7,15 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.r13a.devpr2025.grpc.ControlData;
-import com.r13a.devpr2025.grpc.PaymentData;
-import com.r13a.devpr2025.grpcservices.PaymentsBackClient;
+import com.r13a.devpr2025.Service;
+import com.r13a.devpr2025.entity.Health;
+import com.r13a.devpr2025.entity.Payment;
 
 public class PaymentsClient {
     private static final Logger logger = Logger.getLogger(PaymentsClient.class.getName());
@@ -25,9 +26,9 @@ public class PaymentsClient {
     // Valores de controle do comportamento.
     private static boolean ativoA = true;
     private static boolean ativoB = true;
-    private static int connTimeoutA = 30;
+
     private static int reqTimeoutA = 100;
-    private static int connTimeoutB = 30;
+
     private static int reqTimeoutB = 100;
     HttpRequest.BodyPublisher body;
 
@@ -48,18 +49,20 @@ public class PaymentsClient {
 
     }
 
-    public static void setStatus(ControlData cd) {
-        logger.info(">>>---> Atualizado status");
-        ativoA = cd.getStatusA() == 1 ? true : false;
-        reqTimeoutA = cd.getReqTimeoutA();
-        ativoB = cd.getStatusB() == 1 ? true : false;
-        reqTimeoutB = cd.getReqTimeoutB();
+    public static void setStatus(Health cd) {
+        //logger.info(">>>---> Atualizado status");
+        ativoA = cd.isStatusA();
+        reqTimeoutA = cd.getMinResponseTimeA();
+        ativoB = cd.isStatusB();
+        reqTimeoutB = cd.getMinResponseTimeB();
+        logger.log(Level.INFO, ">>>>>---------------------------------------> Threads Ativas: [{0}]", Thread.activeCount());
+
     }
 
-    public void processPayment(PaymentData pd) {
+    public void processPayment(Payment pd) {
 
         // Ajusta a hora da chamada
-        pd = pd.toBuilder().setRequestedAt(Instant.now().toString()).build();
+        pd.setRequestedAt(Instant.now());
 
         body = BodyPublishers.ofString(
                 "{" +
@@ -71,10 +74,10 @@ public class PaymentsClient {
         try {
             if (isAReady() && (isBReady() && (reqTimeoutA/reqTimeoutB) < 2)) {
                 chamaA(pd);
-            } else if (!isAReady() && isBReady() ) {
+            } else if (isBReady() ) {
                 chamaB(pd);
             } else {
-                PaymentsBackClient.rebote.add(pd);
+                Service.rebote.add(pd);
             }
 
         } catch (Exception e) {
@@ -83,7 +86,7 @@ public class PaymentsClient {
 
     }
 
-    public void chamaA(PaymentData pd) {
+    public void chamaA(Payment pd) {
 
         try {
             HttpClient clientA = HttpClient.newBuilder()
@@ -99,11 +102,23 @@ public class PaymentsClient {
 
             HttpResponse<String> resp = clientA.send(requestA, BodyHandlers.ofString());
 
-            if (resp.statusCode() >= 200 && resp.statusCode() < 300)
-                PaymentsBackClient.resultado.add(pd.toBuilder().setService(1).build());
-            else
-                processPayment(pd);
+            if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
+                pd.setService(1);
+                Service.resultado.put(pd.getRequestedAt().toEpochMilli(), pd );
+                logger.log(Level.FINEST, "Processamento A - {0}", resp.statusCode());
+            }
+            else {
+                
+                //logger.log(Level.WARNING, "Problema no processamento A - {0}", resp.statusCode());
+                if (isBReady())
+                    chamaB(pd);
+                else
+                    Service.rebote.add(pd);
+            }
+                
 
+        } catch (HttpTimeoutException ex) {
+            processPayment(pd);
         } catch (IOException | InterruptedException ex) {
             logger.log(Level.INFO, ">>>---> Erro na chamada do payment DEFAULT - {0} / {1}", new Object[] { ex.getMessage(), ex.getClass().toString() });
                 processPayment(pd);
@@ -111,7 +126,7 @@ public class PaymentsClient {
         }
     }
 
-    public void chamaB(PaymentData pd) {
+    public void chamaB(Payment pd) {
         try {
             HttpClient clientB = HttpClient.newBuilder()
                     .connectTimeout(Duration.ofMillis(30))
@@ -127,15 +142,18 @@ public class PaymentsClient {
             HttpResponse<String> resp = clientB.send(requestB, BodyHandlers.ofString());
 
             if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
-                PaymentsBackClient.resultado.add(pd.toBuilder().setService(2).build());
+                pd.setService(1);
+                Service.resultado.put(pd.getRequestedAt().toEpochMilli(), pd );
             }
             else
-                PaymentsBackClient.rebote.add(pd);
+                Service.rebote.add(pd);
 
+        } catch (HttpTimeoutException ex) {
+            // Faz parte.
         } catch (IOException | InterruptedException ex) {
             logger.log(Level.INFO, ">>>---> Erro na chamada do payment FALLBACK - {0} / {1}",
                     new Object[] { ex.getMessage(), ex.getClass().toString() });
-            PaymentsBackClient.rebote.add(pd);
+            Service.rebote.add(pd);
         }
 
     }
@@ -169,10 +187,10 @@ public class PaymentsClient {
 
     public static boolean isBReady() {
 
-        if (PaymentsClient.ativoB)
+        //if (PaymentsClient.ativoB)
             return true;
 
-        return false;
+        //return false;
 
     }
 

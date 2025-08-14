@@ -24,7 +24,7 @@
   <profiles>
 
     <profile>
-      <id>native-a-pgo</id>
+      <id>native-pgo</id>
       <build>
         <plugins>
           <plugin>
@@ -37,16 +37,15 @@
                 <goals>
                   <goal>compile-no-fork</goal>
                 </goals>
-                <phase>package</phase>
               </execution>
             </executions>
             <configuration>
               <skipNativeTests>true</skipNativeTests>
-              <imageName>api-instrumentedApp</imageName>
+              <imageName>app-ins</imageName>
               <buildArgs>
                   <buildArg>--pgo-instrument --gc=G1</buildArg>
               </buildArgs>
-              <mainClass>com.r13a.devpr2025.api.ApiService</mainClass>
+              <mainClass>com.r13a.devpr2025.Service</mainClass>
             </configuration>
           </plugin>
         </plugins>
@@ -54,7 +53,7 @@
     </profile>
 
     <profile>
-      <id>native-c-pgo</id>
+      <id>native-fast</id>
       <build>
         <plugins>
           <plugin>
@@ -67,46 +66,15 @@
                 <goals>
                   <goal>compile-no-fork</goal>
                 </goals>
-                <phase>package</phase>
               </execution>
             </executions>
             <configuration>
               <skipNativeTests>true</skipNativeTests>
-              <imageName>cli-instrumentedApp</imageName>
-              <buildArgs>
-                  <buildArg>--pgo-instrument  --gc=G1</buildArg>
-              </buildArgs>
-              <mainClass>com.r13a.devpr2025.grpcservices.PaymentsBackClient</mainClass>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>native-a-fast</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.graalvm.buildtools</groupId>
-            <artifactId>native-maven-plugin</artifactId>
-            <extensions>true</extensions>
-            <executions>
-              <execution>
-                <id>build-native</id>
-                <goals>
-                  <goal>compile-no-fork</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-            </executions>
-            <configuration>
-              <skipNativeTests>true</skipNativeTests>
-              <imageName>api-fast</imageName>
+              <imageName>app-fast</imageName>
               <buildArgs>
                   <buildArg>-Ob --gc=G1</buildArg>
               </buildArgs>
-              <mainClass>com.r13a.devpr2025.api.ApiService</mainClass>
+              <mainClass>com.r13a.devpr2025.Service</mainClass>
             </configuration>
           </plugin>
         </plugins>
@@ -114,7 +82,7 @@
     </profile>
 
     <profile>
-      <id>native-c-fast</id>
+      <id>native-opt</id>
       <build>
         <plugins>
           <plugin>
@@ -127,87 +95,24 @@
                 <goals>
                   <goal>compile-no-fork</goal>
                 </goals>
-                <phase>package</phase>
               </execution>
             </executions>
             <configuration>
               <skipNativeTests>true</skipNativeTests>
-              <imageName>cli-fast</imageName>
-              <buildArgs>
-                  <buildArg>-Ob --gc=G1</buildArg>
-              </buildArgs>
-              <mainClass>com.r13a.devpr2025.grpcservices.PaymentsBackClient</mainClass>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>native-a-opt</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.graalvm.buildtools</groupId>
-            <artifactId>native-maven-plugin</artifactId>
-            <extensions>true</extensions>
-            <executions>
-              <execution>
-                <id>build-native</id>
-                <goals>
-                  <goal>compile-no-fork</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-            </executions>
-            <configuration>
-              <skipNativeTests>true</skipNativeTests>
-              <imageName>api-App</imageName>
+              <imageName>app</imageName>
               <buildArgs>
                   <buildArg>-O3</buildArg>
                   <buildArg>-H:TuneInlinerExploration=11</buildArg>
-                  <buildArg>--pgo=api-myprofile.iprof</buildArg>
+                  <buildArg>--pgo</buildArg>
                   <buildArg>--gc=G1</buildArg>
               </buildArgs>
-              <mainClass>com.r13a.devpr2025.api.ApiService</mainClass>
+              <mainClass>com.r13a.devpr2025.Service</mainClass>
             </configuration>
           </plugin>
         </plugins>
       </build>
     </profile>
 
-    <profile>
-      <id>native-c-opt</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.graalvm.buildtools</groupId>
-            <artifactId>native-maven-plugin</artifactId>
-            <extensions>true</extensions>
-            <executions>
-              <execution>
-                <id>build-native</id>
-                <goals>
-                  <goal>compile-no-fork</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-            </executions>
-            <configuration>
-              <skipNativeTests>true</skipNativeTests>
-              <imageName>cli-App</imageName>
-              <buildArgs>
-                  <buildArg>-O3</buildArg>
-                  <buildArg>-H:TuneInlinerExploration=11</buildArg>
-                  <buildArg>--pgo=cli-myprofile.iprof</buildArg>
-                  <buildArg>--gc=G1</buildArg>
-              </buildArgs>
-              <mainClass>com.r13a.devpr2025.grpcservices.PaymentsBackClient</mainClass>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
 
   </profiles>
 
@@ -220,6 +125,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.5.1</version>
+    </dependency>
+    <dependency>
         <groupId>javax.json</groupId>
         <artifactId>javax.json-api</artifactId>
         <version>1.1.4</version>
@@ -229,60 +139,10 @@
         <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.micronaut</groupId>
-      <artifactId>micronaut-http-server-netty</artifactId>
-      <scope>compile</scope>
-    </dependency>
-        <dependency>
-      <groupId>io.micronaut</groupId>
-      <artifactId>micronaut-http-client</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
       <scope>runtime</scope>
     </dependency>  
-    <dependency>
-      <groupId>io.micronaut</groupId>
-      <artifactId>micronaut-discovery-core</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.micronaut.grpc</groupId>
-      <artifactId>micronaut-grpc-runtime</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.micronaut.serde</groupId>
-      <artifactId>micronaut-serde-jackson</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>javax.annotation</groupId>
-      <artifactId>javax.annotation-api</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.micronaut.test</groupId>
-      <artifactId>micronaut-test-junit5</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -290,24 +150,22 @@
         <groupId>com.github.os72</groupId>
         <artifactId>protoc-jar-maven-plugin</artifactId>
       </plugin>
-      <plugin>
-        <groupId>org.graalvm.buildtools</groupId>
-        <artifactId>native-maven-plugin</artifactId>
-        <extensions>true</extensions>
-        <executions>
-          <execution>
-            <id>build-native</id>
-            <goals>
-              <goal>compile-no-fork</goal>
-            </goals>
-            <phase>package</phase>
-          </execution>
-        </executions>
-        <configuration>
-            <mainClass>com.r13a.devpr2025.api.ApiService</mainClass>
-        </configuration>
-      </plugin>
-    </plugins>
+
+    <plugin>
+      <artifactId>maven-assembly-plugin</artifactId>
+      <configuration>
+        <archive>
+          <manifest>
+            <mainClass>com.r13a.devpr2025.Service</mainClass>
+          </manifest>
+        </archive>
+        <descriptorRefs>
+          <descriptorRef>jar-with-dependencies</descriptorRef>
+        </descriptorRefs>
+      </configuration>
+    </plugin>
+  </plugins>
+    
   </build>
 
 </project>

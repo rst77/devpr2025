@@ -1,13 +1,7 @@
 {
   "resources":{
   "includes":[{
-    "pattern":"\\QMETA-INF/io.netty.versions.properties\\E"
-  }, {
-    "pattern":"\\QMETA-INF/services/ch.qos.logback.classic.spi.Configurator\\E"
-  }, {
     "pattern":"\\QMETA-INF/services/com.sun.net.httpserver.spi.HttpServerProvider\\E"
-  }, {
-    "pattern":"\\QMETA-INF/services/io.grpc.ServerProvider\\E"
   }, {
     "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
   }, {
@@ -18,18 +12,6 @@
     "pattern":"\\QMETA-INF/services/java.nio.channels.spi.SelectorProvider\\E"
   }, {
     "pattern":"\\QMETA-INF/services/java.time.zone.ZoneRulesProvider\\E"
-  }, {
-    "pattern":"\\QMETA-INF/services/javax.xml.parsers.SAXParserFactory\\E"
-  }, {
-    "pattern":"\\QMETA-INF/services/org.slf4j.spi.SLF4JServiceProvider\\E"
-  }, {
-    "pattern":"\\Qlogback-test.scmo\\E"
-  }, {
-    "pattern":"\\Qlogback-test.xml\\E"
-  }, {
-    "pattern":"\\Qlogback.scmo\\E"
-  }, {
-    "pattern":"\\Qlogback.xml\\E"
   }]},
   "bundles":[]
 }

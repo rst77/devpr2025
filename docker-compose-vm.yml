@@ -1,4 +1,5 @@
 services:
+
   nginx:
     image: nginx:1.25-alpine
     container_name: rinha-nginx
@@ -49,6 +50,8 @@ services:
         limits:
           cpus: "0.65"
           memory: "167MB"
+
+
 
 networks:
   payment-processor:
