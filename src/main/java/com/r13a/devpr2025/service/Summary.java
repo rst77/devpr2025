@@ -27,11 +27,14 @@ public class Summary {
 
     private static final ObjectMapper mapa = new ObjectMapper();
 
+    public void limpa(Instant to) {
+        long cap = to.minusSeconds(3).toEpochMilli();
+        Service.resultado.entrySet().removeIf(e -> e.getKey() < cap);
+    }
 
     public Total calculate(Instant from, Instant to) throws Exception {
 
         Total total = new Total();
-
         Service.resultado
                     .entrySet()
                     .stream()
@@ -45,6 +48,7 @@ public class Summary {
                             total.totalFallback++;
                             total.somaFallback += e.getValue().getAmount();
                         }
+
                     });
         return total;
     }
@@ -70,8 +74,6 @@ public class Summary {
         bodyString.append(total.somaFallback);
         bodyString.append("}}");
 
-        //logger.log(Level.INFO, ">>>---> Summary: {0}", bodyString.toString());
-
         exchange.sendResponseHeaders(200, bodyString.length());
         OutputStream os = exchange.getResponseBody();
         os.write(bodyString.toString().getBytes());
@@ -94,7 +96,7 @@ public class Summary {
         //logger.log(Level.INFO, ">>>---> from: {0}", from.toString());
         //logger.log(Level.INFO, ">>>---> to: {0}", to.toString());
 
-        Thread.sleep(Duration.ofMillis(700));
+        Thread.sleep(Duration.ofMillis(800));
 
         Total total = calculate(from, to);
         ObjectMapper mapa = new ObjectMapper();
@@ -103,6 +105,7 @@ public class Summary {
         OutputStream os = exchange.getResponseBody();
         os.write(bodyString.getBytes());
         os.close();
+        limpa(to);
     }
 
     /**
@@ -124,7 +127,7 @@ public class Summary {
             totalPar = nc.requestSummary(from, to);
 
         });
-        Thread.sleep(Duration.ofMillis(700));
+        Thread.sleep(Duration.ofMillis(800));
         Total total = calculate(from, to);
 
         // Espera resposta do par.
@@ -142,7 +145,7 @@ public class Summary {
         }
 
         retorna(total, exchange);
-
+        limpa(to);
     }
 
     /**

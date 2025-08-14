@@ -24,8 +24,8 @@ public class Payments {
     public void process(HttpExchange exchange) throws Exception {
 
         try {
-        InputStream requestBodyStream = exchange.getRequestBody();
-           BufferedReader reader = new BufferedReader(new InputStreamReader(requestBodyStream, "UTF-8"));
+            InputStream requestBodyStream = exchange.getRequestBody();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(requestBodyStream, "UTF-8"));
             StringBuilder bodyContent = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
@@ -38,16 +38,16 @@ public class Payments {
             Payment p = new Payment();
 
             int cont = 1;
-            for (String keyValue: body.split(",")) {
+            for (String keyValue : body.split(",")) {
                 String[] data = keyValue.split(":");
 
-                if (cont == 1) 
-                    p.setCorrelationId( data[1].replace("\"", "").trim() );
+                if (cont == 1)
+                    p.setCorrelationId(data[1].replace("\"", "").trim());
                 else
-                    p.setAmount( Double.parseDouble( data[1].replace("\"", "").replace("}", "").trim() ) );
+                    p.setAmount(Double.parseDouble(data[1].replace("\"", "").replace("}", "").trim()));
 
                 cont++;
-            }            
+            }
 
             Service.processamento.add(p);
 

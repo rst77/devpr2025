@@ -27,16 +27,18 @@ public class Service {
 
     private static final Logger logger = Logger.getLogger(Service.class.getName());
 
-    private final static int httpPort = 9901;
+    private final static int HTTP_PORT = 9901;
+    private final static int MAX_THREAD = 900;
+
+    public static String NODE_ID;
 
     public final static Stack<Payment> processamento = new Stack<>();
     public final static Stack<Payment> rebote = new Stack<>();
     public static final Map<Long, Payment> resultado = new HashMap<>();
 
-    public static String NODE_ID;
     public static String urlA = null;
     public static String urlB = null;
-    
+
     public static String pairURL;
     public static String nodeURL;
 
@@ -44,7 +46,8 @@ public class Service {
 
     public static void main(String[] args) throws Exception {
         logger.log(Level.INFO, ">>>---> Versão da aplicação: {0}", Instant.now().toString());
-        logger.log(Level.INFO, ">>>---> Porta do servidor: {0}", Service.httpPort);
+        logger.log(Level.INFO, ">>>---> Max Threads: {0}", Service.MAX_THREAD);
+        logger.log(Level.INFO, ">>>---> Porta do servidor: {0}", Service.HTTP_PORT);
 
         String nodeId = System.getenv("NODE_ID");
         if (nodeId != null) {
@@ -71,11 +74,11 @@ public class Service {
         }
         logger.log(Level.INFO, ">>>---> Health URL B: {0}", Service.urlB);
 
-                String pair = System.getenv("PAIR_URL");
+        String pair = System.getenv("PAIR_URL");
         if (pair != null) {
             Service.pairURL = pair;
         } else {
-            pairURL = "http://" + (Service.NODE_ID.equals("node02") ? "node01" : "node02") + ":" + Service.httpPort;
+            pairURL = "http://" + (Service.NODE_ID.equals("node02") ? "node01" : "node02") + ":" + Service.HTTP_PORT;
         }
         logger.log(java.util.logging.Level.INFO, ">>>---> pairURL: {0}", Service.pairURL);
 
@@ -83,7 +86,7 @@ public class Service {
         if (node != null) {
             Service.nodeURL = node;
         } else {
-            Service.nodeURL = "http://node02:" + Service.httpPort;
+            Service.nodeURL = "http://node02:" + Service.HTTP_PORT;
         }
         logger.log(java.util.logging.Level.INFO, ">>>---> nodeURL: {0}", Service.nodeURL);
 
@@ -138,18 +141,27 @@ public class Service {
         Thread.ofVirtual().start(() -> {
             logger.info(">>>---> iniciando guarda de processamento de pagamento.");
             while (true) {
-                if (!processamento.empty() && PaymentsClient.isAlmostReady() && Thread.activeCount() < 1001) {
-                    try {
-                        Payment pd = processamento.pop();
-                        Thread.ofVirtual().start(() -> {
-                            PaymentsClient pc = new PaymentsClient();
-                            pc.processPayment(pd);
-                        });
-
-                    } catch (Exception e) {
-                        logger.log(Level.WARNING, "Erro no processamento da guarda de pagamento - {0}", e.getMessage());
+                if (!processamento.empty() && PaymentsClient.isAlmostReady() ) {
+                    while (!processamento.empty() && Thread.activeCount() < Service.MAX_THREAD) {
+                        try {
+                            Payment pd = processamento.pop();
+                            Thread.ofVirtual().start(() -> {
+                                PaymentsClient pc = new PaymentsClient();
+                                pc.processPayment(pd);
+                            });
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Erro no processamento da guarda de pagamento - {0}",
+                                    e.getMessage());
+                        }
                     }
                 }
+                try {
+                    Thread.sleep(Duration.ofMillis(1000));
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
             }
         });
 
@@ -159,16 +171,25 @@ public class Service {
         Thread.ofVirtual().start(() -> {
             logger.info(">>>---> iniciando guarda de processamento de rebote.");
             while (true) {
-                if (!rebote.empty() && PaymentsClient.isAReady() && Thread.activeCount() < 1501) {
-                    try {
-                        Payment pd = rebote.pop();
-                        Thread.ofVirtual().start(() -> {
-                            PaymentsClient pc = new PaymentsClient();
-                            pc.processPayment(pd);
-                        });
+                if (!rebote.empty() && PaymentsClient.isAReady()) {
+                    while (!rebote.empty() && Thread.activeCount() < Service.MAX_THREAD + 100) {
+                        try {
+                            Payment pd = rebote.pop();
+                            Thread.ofVirtual().start(() -> {
+                                PaymentsClient pc = new PaymentsClient();
+                                pc.processPayment(pd);
+                            });
 
-                    } catch (Exception e) {
-                        logger.log(Level.WARNING, "Erro no processamento da guarda de rebote - {0}", e.getMessage());
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Erro no processamento da guarda de rebote - {0}",
+                                    e.getMessage());
+                        }
+                    }
+                    try {
+                        Thread.sleep(Duration.ofMillis(1000));
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
                 }
             }
@@ -182,16 +203,16 @@ public class Service {
      * @throws IOException
      */
     public void start() throws IOException {
-        serverHttp = HttpServer.create(new InetSocketAddress(httpPort), 0);
+        serverHttp = HttpServer.create(new InetSocketAddress(Service.HTTP_PORT), 0);
         serverHttp.createContext("/", new Router());
         serverHttp.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         serverHttp.start();
-        logger.log(Level.INFO, "Servidor HTTP - Iniciado na porta: {0}", httpPort);
+        logger.log(Level.INFO, "Servidor HTTP - Iniciado na porta: {0}", Service.HTTP_PORT);
     }
 
     public void stop() {
         if (serverHttp != null) {
-            serverHttp.stop(httpPort);
+            serverHttp.stop(Service.HTTP_PORT);
         }
     }
 
@@ -234,14 +255,14 @@ public class Service {
             } else if ("POST".equals(exchange.getRequestMethod()) &&
                     exchange.getRequestURI().getPath().equals("/payments")) {
 
-                Thread.ofVirtual().start(() -> {
+                //Thread.ofVirtual().start(() -> {
                     try {
                         Payments p = new Payments();
                         p.process(exchange);
                     } catch (Exception e) {
                         logger.log(Level.INFO, ">>>---> problema processamento relatorio - {0}", e.getMessage());
                     }
-                });
+               // });
 
             } else {
                 exchange.sendResponseHeaders(405, -1);
