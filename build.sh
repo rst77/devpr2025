@@ -25,3 +25,5 @@ if [ "$1" != "pgo" ]; then
     docker push     $tag
     docker push ghcr.io/rst77/app:9
 fi
+
+#teste.
