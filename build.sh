@@ -1,5 +1,10 @@
 #!/bin/bash
 
+tag="ghcr.io/rst77/app:9"
+
+echo $(date +"%Y-%m-%d at %H:%M:%S") - $tag > src/main/resources/version.fingerprint
+
+
 if [ "$1" != "build" ]; then
     mvn clean compile
 fi
@@ -15,8 +20,9 @@ fi
 
 if [ "$1" != "pgo" ]; then
     docker compose down &
-    docker image rm ghcr.io/rst77/app:8
-    docker build -t ghcr.io/rst77/app:8 -f app.Dockerfile  . --no-cache --progress=plain
-    docker push     ghcr.io/rst77/app:8./
-    docker compose push
+    docker image rm $tag
+    docker build -t $tag -f app.Dockerfile  . --no-cache --progress=plain
+    docker push     $tag
+    docker login --username rst77 --password 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 ghcr.io
+    docker push ghcr.io/rst77/app:9
 fi

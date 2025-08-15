@@ -2,6 +2,7 @@ services:
 
   nginx:
     image: nginx:1.25-alpine
+    hostname: lb
     container_name: rinha-nginx
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
@@ -20,7 +21,7 @@ services:
           memory: "15MB"
   
   node01: 
-    image: ghcr.io/rst77/app:6
+    image: ghcr.io/rst77/app:9
     hostname: node01
     environment:
           PAYMENT_PROCESSOR_FALLBACK: http://payment-processor-fallback:8080
@@ -36,7 +37,7 @@ services:
           memory: "167MB"
 
   node02: 
-    image: ghcr.io/rst77/app:6
+    image: ghcr.io/rst77/app:9
     hostname: node02
     environment:
           PAYMENT_PROCESSOR_FALLBACK: http://payment-processor-fallback:8080

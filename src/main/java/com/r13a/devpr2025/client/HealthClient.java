@@ -92,6 +92,7 @@ public class HealthClient {
                 return h;
             } catch (IOException | InterruptedException e) {
                 logger.log(Level.WARNING, ">>>---> Erro no processamento do health: {0}", e.getMessage());
+                e.printStackTrace();
             }
 
         return null;
