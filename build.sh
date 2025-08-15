@@ -23,6 +23,6 @@ if [ "$1" != "pgo" ]; then
     docker image rm $tag
     docker build -t $tag -f app.Dockerfile  . --no-cache --progress=plain
     docker push     $tag
-    docker login --username rst77 --password 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 ghcr.io
+    docker login --username rst77 --password ghcr.io
     docker push ghcr.io/rst77/app:9
 fi
