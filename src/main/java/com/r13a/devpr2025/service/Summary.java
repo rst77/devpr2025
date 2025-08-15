@@ -28,7 +28,7 @@ public class Summary {
     private static final ObjectMapper mapa = new ObjectMapper();
 
     public void limpa(Instant to) {
-        long cap = to.minusSeconds(3).toEpochMilli();
+        long cap = to.minusSeconds(Service.SUMM_DELAY).toEpochMilli();
         Service.resultado.entrySet().removeIf(e -> e.getKey() < cap);
     }
 
@@ -96,7 +96,9 @@ public class Summary {
         //logger.log(Level.INFO, ">>>---> from: {0}", from.toString());
         //logger.log(Level.INFO, ">>>---> to: {0}", to.toString());
 
-        Thread.sleep(Duration.ofMillis(800));
+
+        Thread.sleep(Duration.ofMillis(Service.SUMM_DELAY));
+
 
         Total total = calculate(from, to);
         ObjectMapper mapa = new ObjectMapper();
@@ -127,14 +129,15 @@ public class Summary {
             totalPar = nc.requestSummary(from, to);
 
         });
-        Thread.sleep(Duration.ofMillis(800));
+
+        Thread.sleep(Duration.ofMillis(Service.SUMM_DELAY));
         Total total = calculate(from, to);
 
         // Espera resposta do par.
         while (t.isAlive()) {}
 
-        //logger.log(Level.INFO, "Dados Locais: {0}", mapa.writeValueAsString(total));
-        //logger.log(Level.INFO, "Dados Par   : {0}", mapa.writeValueAsString(totalPar));
+        logger.log(Level.INFO, "Dados Locais: {0}", mapa.writeValueAsString(total));
+        logger.log(Level.INFO, "Dados Par   : {0}", mapa.writeValueAsString(totalPar));
 
 
         if (totalPar != null) {

@@ -15,8 +15,8 @@ fi
 
 if [ "$1" != "pgo" ]; then
     docker compose down &
-    docker image rm ghcr.io/rst77/app:7
-    docker build -t ghcr.io/rst77/app:7 -f app.Dockerfile  . --no-cache --progress=plain
-    docker push     ghcr.io/rst77/app:7
+    docker image rm ghcr.io/rst77/app:8
+    docker build -t ghcr.io/rst77/app:8 -f app.Dockerfile  . --no-cache --progress=plain
+    docker push     ghcr.io/rst77/app:8./
     docker compose push
 fi

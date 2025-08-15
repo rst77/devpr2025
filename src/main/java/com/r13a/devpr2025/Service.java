@@ -29,6 +29,9 @@ public class Service {
 
     private final static int HTTP_PORT = 9901;
     private final static int MAX_THREAD = 900;
+    public final static int DELETE_CAP = 5;
+    public final static int SUMM_DELAY = 800;
+    public final static int THREAD_DELAY = 1200;
 
     public static String NODE_ID;
 
@@ -138,32 +141,33 @@ public class Service {
      */
     public void startPayment() {
 
-        Thread.ofVirtual().start(() -> {
-            logger.info(">>>---> iniciando guarda de processamento de pagamento.");
-            while (true) {
-                if (!processamento.empty() && PaymentsClient.isAlmostReady() ) {
-                    while (!processamento.empty() && Thread.activeCount() < Service.MAX_THREAD) {
-                        try {
-                            Payment pd = processamento.pop();
-                            Thread.ofVirtual().start(() -> {
-                                PaymentsClient pc = new PaymentsClient();
-                                pc.processPayment(pd);
-                            });
-                        } catch (Exception e) {
-                            logger.log(Level.WARNING, "Erro no processamento da guarda de pagamento - {0}",
-                                    e.getMessage());
+        for (int i = 0; i < 4; i++)
+            Thread.ofVirtual().start(() -> {
+                logger.info(">>>---> iniciando guarda de processamento de pagamento.");
+                while (true) {
+                    if (!processamento.empty() && PaymentsClient.isAlmostReady() ) {
+                        while (!processamento.empty() && Thread.activeCount() < Service.MAX_THREAD) {
+                            try {
+                                Payment pd = processamento.pop();
+                                //Thread.ofVirtual().start(() -> {
+                                    PaymentsClient pc = new PaymentsClient();
+                                    pc.processPayment(pd);
+                                //});
+                            } catch (Exception e) {
+                                logger.log(Level.WARNING, "Erro no processamento da guarda de pagamento - {0}",
+                                        e.getMessage());
+                            }
                         }
                     }
-                }
-                try {
-                    Thread.sleep(Duration.ofMillis(1000));
-                } catch (Exception e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                    try {
+                        Thread.sleep(Duration.ofMillis(Service.THREAD_DELAY));
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
 
-            }
-        });
+                }
+            });
 
         /**
          * Rebote da preferencia para o processador A
@@ -175,10 +179,10 @@ public class Service {
                     while (!rebote.empty() && Thread.activeCount() < Service.MAX_THREAD + 100) {
                         try {
                             Payment pd = rebote.pop();
-                            Thread.ofVirtual().start(() -> {
+                            //Thread.ofVirtual().start(() -> {
                                 PaymentsClient pc = new PaymentsClient();
                                 pc.processPayment(pd);
-                            });
+                            //});
 
                         } catch (Exception e) {
                             logger.log(Level.WARNING, "Erro no processamento da guarda de rebote - {0}",

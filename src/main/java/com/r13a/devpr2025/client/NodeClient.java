@@ -68,7 +68,7 @@ public class NodeClient {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(Service.pairURL + queryString))
-                    .timeout(Duration.ofMillis(800))
+                    .timeout(Duration.ofMillis(4000))
                     .header("Content-Type", "application/json")
                     .GET()
                     .build();

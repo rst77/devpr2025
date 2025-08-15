@@ -142,7 +142,7 @@ public class PaymentsClient {
             HttpResponse<String> resp = clientB.send(requestB, BodyHandlers.ofString());
 
             if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
-                pd.setService(1);
+                pd.setService(2);
                 Service.resultado.put(pd.getRequestedAt().toEpochMilli(), pd );
             }
             else
