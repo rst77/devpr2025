@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpTimeoutException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,32 +23,21 @@ import com.r13a.devpr2025.entity.Payment;
 public class PaymentsClient {
     private static final Logger logger = Logger.getLogger(PaymentsClient.class.getName());
 
-    private static String urlA = null;
-    private static String urlB = null;
-
-    // Valores de controle do comportamento.
     private static boolean ativoA = true;
     private static boolean ativoB = true;
-
     private static int reqTimeoutA = 100;
-
     private static int reqTimeoutB = 100;
-    HttpRequest.BodyPublisher body;
 
-    public PaymentsClient() {
+    private static final byte[] REQUESTED_AT_PREFIX = "{\"requestedAt\":\"".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] REQUESTED_AT_SUFFIX = "\",".getBytes(StandardCharsets.UTF_8);
 
-        String defaultURL = System.getenv("PAYMENT_PROCESSOR_DEFAULT");
-        if (defaultURL != null) {
-            PaymentsClient.urlA = defaultURL;
-        } else {
-            PaymentsClient.urlA = "http://localhost:8001";
-        }
-        String fallbackURL = System.getenv("PAYMENT_PROCESSOR_FALLBACK");
-        if (fallbackURL != null) {
-            PaymentsClient.urlB = fallbackURL;
-        } else {
-            PaymentsClient.urlB = "http://localhost:8002";
-        }
+    private static final ThreadLocal<ByteBuffer> BUFFER = ThreadLocal.withInitial(() -> ByteBuffer.allocate(256));
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME.withZone(ZoneOffset.UTC);
+
+    private final String instanceName;
+
+    public PaymentsClient(String instanceName) {
+        this.instanceName = instanceName;
 
     }
 
@@ -55,105 +47,145 @@ public class PaymentsClient {
         reqTimeoutA = cd.getMinResponseTimeA();
         ativoB = cd.isStatusB();
         reqTimeoutB = cd.getMinResponseTimeB();
-        logger.log(Level.INFO, ">>>>>---------------------------------------> Threads Ativas: [{0}]", Thread.activeCount());
+        //logger.log(Level.INFO, ">>>---> Threads Ativas: [{0}]", Thread.activeCount());
 
     }
 
-    public void processPayment(Payment pd) {
+    private byte[] original;
+    public void processPayment(byte[] pd, byte servico) {
+        if (servico == 0)
+            original = pd;
+        else 
+            pd = original;
 
-        // Ajusta a hora da chamada
-        pd.setRequestedAt(Instant.now());
+        ByteBuffer buffer = BUFFER.get().clear();
+        buffer.put(REQUESTED_AT_PREFIX);
 
-        body = BodyPublishers.ofString(
-                "{" +
-                        "\"correlationId\": \"" + pd.getCorrelationId() + "\"," +
-                        "\"amount\": " + pd.getAmount() + "," +
-                        "\"requestedAt\" : \"" + pd.getRequestedAt() + "\"" +
-                        "}");
+        Instant now = Instant.ofEpochMilli(System.currentTimeMillis());
+        buffer.put(FORMATTER.format(now).getBytes(StandardCharsets.UTF_8));
+
+        buffer.put(REQUESTED_AT_SUFFIX);
+
+        buffer.put(pd, 1, pd.length - 1);
+
+        byte[] result = new byte[buffer.position()];
+        buffer.flip();
+        buffer.get(result);        
 
         try {
-            if (isAReady() && (isBReady() && (reqTimeoutA/reqTimeoutB) < 2)) {
-                chamaA(pd);
+            if ((servico < 2 && isAReady()) && (isBReady() && (reqTimeoutA/reqTimeoutB) < 2)) {
+                chamaA(result);
             } else if (isBReady() ) {
-                chamaB(pd);
-            } else {
-                Service.rebote.add(pd);
+                chamaB(result);
             }
 
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Problemas no processamento de decisao do cliente.");
+            logger.log(Level.WARNING, "Problemas no processamento de decisao do cliente. - instancia: {0}", instanceName);
         }
 
     }
 
-    public void chamaA(Payment pd) {
+    
+    private void addProcessamento(byte[] body, byte servico) {
+
+        String dados = new String(body, StandardCharsets.UTF_8);
+
+        Payment p = new Payment();
+        int cont = 0;
+        for (String keyValue : dados.split(",")) {
+            try {
+                // String[] data = keyValue.split(":");
+                switch (cont) {
+                    case 0 -> p.setRequestedAt( Instant.parse(keyValue.subSequence(16, keyValue.indexOf("Z") + 1)).toEpochMilli() );
+                    case 2 -> p.setAmount(
+                                            Double.parseDouble(
+                                                String.valueOf(
+                                                    keyValue.subSequence(keyValue.indexOf(":") +1, keyValue.indexOf("}"))
+                                                ).trim()
+                                            )
+                                        );
+                }
+                cont++;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(-1);
+            }
+        }
+
+        if (servico == 1)
+            Service.resultadoA.put(p);
+        else
+            Service.resultadoB.put(p);
+
+    }
+
+    public void chamaA(byte[] pd) {
 
         try {
+
             HttpClient clientA = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofMillis(30))
+                    .connectTimeout(Duration.ofMillis(Service.CONN_TO - 10))
                     .build();
 
             HttpRequest requestA = HttpRequest.newBuilder()
-                    .uri(URI.create(PaymentsClient.urlA + "/payments"))
-                    .timeout(java.time.Duration.ofSeconds(2))
+                    .uri(URI.create(Service.urlA + "/payments"))
+                    .timeout(java.time.Duration.ofSeconds(Service.REQ_TO - 5))
                     .header("Content-Type", "application/json")
-                    .POST(body)
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(pd))
                     .build();
 
             HttpResponse<String> resp = clientA.send(requestA, BodyHandlers.ofString());
 
             if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
-                pd.setService(1);
-                Service.resultado.put(pd.getRequestedAt().toEpochMilli(), pd );
-                logger.log(Level.FINEST, "Processamento A - {0}", resp.statusCode());
+                addProcessamento(pd, (byte)1);
             }
             else {
-                
-                //logger.log(Level.WARNING, "Problema no processamento A - {0}", resp.statusCode());
-                if (isBReady())
-                    chamaB(pd);
-                else
-                    Service.rebote.add(pd);
+                processPayment(pd, (byte)2);
             }
                 
 
         } catch (HttpTimeoutException ex) {
-            processPayment(pd);
+            processPayment(pd, (byte)2);
         } catch (IOException | InterruptedException ex) {
             logger.log(Level.INFO, ">>>---> Erro na chamada do payment DEFAULT - {0} / {1}", new Object[] { ex.getMessage(), ex.getClass().toString() });
-                processPayment(pd);
+                processPayment(pd, (byte)2);
 
         }
     }
 
-    public void chamaB(Payment pd) {
+    public void chamaB(byte[] pd) {
         try {
             HttpClient clientB = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofMillis(30))
+                    .connectTimeout(Duration.ofMillis(Service.CONN_TO))
                     .build();
 
             HttpRequest requestB = HttpRequest.newBuilder()
-                    .uri(URI.create(PaymentsClient.urlB + "/payments"))
-                    .timeout(java.time.Duration.ofSeconds(10))
+                    .uri(URI.create(Service.urlB + "/payments"))
+                    .timeout(java.time.Duration.ofSeconds(Service.REQ_TO))
                     .header("Content-Type", "application/json")
-                    .POST(body)
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(pd))
                     .build();
 
             HttpResponse<String> resp = clientB.send(requestB, BodyHandlers.ofString());
 
             if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
-                pd.setService(2);
-                Service.resultado.put(pd.getRequestedAt().toEpochMilli(), pd );
+                addProcessamento(pd, (byte)2);
+            }
+            else if (resp.statusCode() == 422) {
+                logger.log(Level.WARNING, "######################################### DUPLICADO");
             }
             else
-                Service.rebote.add(pd);
+                logger.log(Level.WARNING, "Problema no processamento B - code: {0} - body: {1}", new Object[] { resp.statusCode(), resp.body() });
+
+                //Service.rebote.add(pd);
 
         } catch (HttpTimeoutException ex) {
             // Faz parte.
         } catch (IOException | InterruptedException ex) {
             logger.log(Level.INFO, ">>>---> Erro na chamada do payment FALLBACK - {0} / {1}",
                     new Object[] { ex.getMessage(), ex.getClass().toString() });
-            Service.rebote.add(pd);
+            //Service.rebote.add(pd);
         }
 
     }

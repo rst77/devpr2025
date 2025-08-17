@@ -5,3 +5,5 @@ mvn clean compile assembly:single
 docker build -t ghcr.io/rst77/app:6 -f vm.Dockerfile  . --no-cache --progress=plain
 
 curl --header "Content-Type: application/json"   --request POST   --data '{"statusA":true,"minResponseTimeA":5000,"statusB":true,"minResponseTimeB":100}'   http://localhost:9999/update-health
+
+uuid=$(uuidgen) && curl --header "Content-Type: application/json"   --request POST   --data "{\"correlationId\": \"${uuid}\", \"amount\": 19.90 }"   http://localhost:9901/payments -v

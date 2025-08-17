@@ -103,8 +103,8 @@
               <buildArgs>
                   <buildArg>-O3</buildArg>
                   <buildArg>-H:TuneInlinerExploration=11</buildArg>
-                  <buildArg>--pgo</buildArg>
                   <buildArg>--gc=G1</buildArg>
+                  <buildArg>--pgo=./pgo/node01/default.iprof</buildArg>
               </buildArgs>
               <mainClass>com.r13a.devpr2025.Service</mainClass>
             </configuration>
@@ -125,11 +125,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.5.1</version>
-    </dependency>
-    <dependency>
         <groupId>javax.json</groupId>
         <artifactId>javax.json-api</artifactId>
         <version>1.1.4</version>
@@ -146,11 +141,6 @@
   </dependencies>
   <build>
     <plugins>
-      <plugin>
-        <groupId>com.github.os72</groupId>
-        <artifactId>protoc-jar-maven-plugin</artifactId>
-      </plugin>
-
     <plugin>
       <artifactId>maven-assembly-plugin</artifactId>
       <configuration>
