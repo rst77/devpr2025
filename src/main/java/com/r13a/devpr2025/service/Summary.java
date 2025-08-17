@@ -28,28 +28,32 @@ public class Summary {
     private static final ObjectMapper mapa = new ObjectMapper();
 
     public void limpa(Instant to) {
-        long cap = to.minusSeconds(Service.SUMM_DELAY).toEpochMilli();
-        Service.resultado.entrySet().removeIf(e -> e.getKey() < cap);
+        long cap = to.minusSeconds(10).toEpochMilli();
+        Service.resultadoA.removeIf(e -> e.getRequestedAt() < cap);
+        Service.resultadoB.removeIf(e -> e.getRequestedAt() < cap);
     }
 
     public Total calculate(Instant from, Instant to) throws Exception {
 
         Total total = new Total();
-        Service.resultado
-                    .entrySet()
+        Service.resultadoA
                     .stream()
-                    .filter(e -> e.getKey() >= from.toEpochMilli() &&
-                            e.getKey() <= to.toEpochMilli())
+                    .filter(e -> e.getRequestedAt() >= from.toEpochMilli() &&
+                            e.getRequestedAt() <= to.toEpochMilli())
                     .forEach((e) -> {
-                        if (e.getValue().getService() == 1) {      
                             total.totalDefault++;
-                            total.somaDefault += e.getValue().getAmount();
-                        } else {
-                            total.totalFallback++;
-                            total.somaFallback += e.getValue().getAmount();
-                        }
-
+                            total.somaDefault += e.getAmount();
                     });
+
+        Service.resultadoB
+                    .stream()
+                    .filter(e -> e.getRequestedAt() >= from.toEpochMilli() &&
+                            e.getRequestedAt() <= to.toEpochMilli())
+                    .forEach((e) -> {
+                            total.totalFallback++;
+                            total.somaFallback += e.getAmount();
+                    });
+                    
         return total;
     }
 
@@ -122,19 +126,19 @@ public class Summary {
         //logger.log(Level.INFO, ">>>---> to: {0}", to.toString());
 
 
-        Thread t = Thread.ofVirtual().start(() -> {
+       // Thread t = Thread.ofVirtual().start(() -> {
             //logger.info(">>>---> pedindo resumo do par");
 
             NodeClient nc = new NodeClient();
             totalPar = nc.requestSummary(from, to);
 
-        });
+        //});
 
-        Thread.sleep(Duration.ofMillis(Service.SUMM_DELAY));
+        //Thread.sleep(Duration.ofMillis(Service.SUMM_DELAY));
         Total total = calculate(from, to);
 
         // Espera resposta do par.
-        while (t.isAlive()) {}
+        //while (t.isAlive()) {}
 
         logger.log(Level.INFO, "Dados Locais: {0}", mapa.writeValueAsString(total));
         logger.log(Level.INFO, "Dados Par   : {0}", mapa.writeValueAsString(totalPar));

@@ -73,8 +73,8 @@ public class HealthClient {
                     ativoA = !registroA.failing;
                     reqTimeoutA = registroA.minResponseTime < 100 ? 100 : registroA.minResponseTime;
 
-                    System.out.println("\nativoA: " + ativoA);
-                    System.out.println("reqTimeoutA: " + reqTimeoutA);
+                    //System.out.println("\nativoA: " + ativoA);
+                    //System.out.println("reqTimeoutA: " + reqTimeoutA);
 
                 }
 
@@ -85,8 +85,8 @@ public class HealthClient {
                     ativoB = !registroB.failing;
                     reqTimeoutB = registroB.minResponseTime < 100 ? 100 : registroB.minResponseTime;
 
-                    System.out.println("ativoB: " + ativoB);
-                    System.out.println("reqTimeoutB: " + reqTimeoutB);
+                    //System.out.println("ativoB: " + ativoB);
+                    //System.out.println("reqTimeoutB: " + reqTimeoutB);
                 }
                 Health h = new Health(ativoB, reqTimeoutB, ativoA, reqTimeoutA);
                 return h;

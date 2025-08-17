@@ -1,13 +1,17 @@
 package com.r13a.devpr2025;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedTransferQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,14 +34,20 @@ public class Service {
     private final static int HTTP_PORT = 9901;
     private final static int MAX_THREAD = 900;
     public final static int DELETE_CAP = 5;
-    public final static int SUMM_DELAY = 800;
-    public final static int THREAD_DELAY = 1200;
+
+    public static int SUMM_DELAY = 500;
+    public static int PAYMENT_PROCESSORS = 20;
+    public static int CONN_TO = 100;
+    public static int REQ_TO = 15;
+
 
     public static String NODE_ID;
 
-    public final static Stack<Payment> processamento = new Stack<>();
-    public final static Stack<Payment> rebote = new Stack<>();
-    public static final Map<Long, Payment> resultado = new HashMap<>();
+    public final static LinkedTransferQueue<byte[]> processamento = new LinkedTransferQueue<>();
+    public final static List<ArrayBlockingQueue<byte[]>> dist = new ArrayList<>();
+
+    public final static LinkedTransferQueue<Payment> resultadoA  = new LinkedTransferQueue<>();
+    public final static LinkedTransferQueue<Payment> resultadoB  = new LinkedTransferQueue<>();
 
     public static String urlA = null;
     public static String urlB = null;
@@ -48,50 +58,8 @@ public class Service {
     private HttpServer serverHttp;
 
     public static void main(String[] args) throws Exception {
-        logger.log(Level.INFO, ">>>---> Versão da aplicação: {0}", Instant.now().toString());
-        logger.log(Level.INFO, ">>>---> Max Threads: {0}", Service.MAX_THREAD);
-        logger.log(Level.INFO, ">>>---> Porta do servidor: {0}", Service.HTTP_PORT);
 
-        String nodeId = System.getenv("NODE_ID");
-        if (nodeId != null) {
-            NODE_ID = nodeId;
-        } else {
-            NODE_ID = "node01";
-            logger.log(Level.SEVERE, "Nao informado o id do NO");
-        }
-        logger.log(Level.INFO, ">>>---> NODE_ID: {0}", NODE_ID);
-
-        String defaultURL = System.getenv("PAYMENT_PROCESSOR_DEFAULT");
-        if (defaultURL != null) {
-            Service.urlA = defaultURL;
-        } else {
-            Service.urlA = "http://localhost:8001";
-        }
-        logger.log(Level.INFO, ">>>---> Health URL A: {0}", Service.urlA);
-
-        String fallbackURL = System.getenv("PAYMENT_PROCESSOR_FALLBACK");
-        if (fallbackURL != null) {
-            Service.urlB = fallbackURL;
-        } else {
-            Service.urlB = "http://localhost:8002";
-        }
-        logger.log(Level.INFO, ">>>---> Health URL B: {0}", Service.urlB);
-
-        String pair = System.getenv("PAIR_URL");
-        if (pair != null) {
-            Service.pairURL = pair;
-        } else {
-            pairURL = "http://" + (Service.NODE_ID.equals("node02") ? "node01" : "node02") + ":" + Service.HTTP_PORT;
-        }
-        logger.log(java.util.logging.Level.INFO, ">>>---> pairURL: {0}", Service.pairURL);
-
-        String node = System.getenv("NODE_URL");
-        if (node != null) {
-            Service.nodeURL = node;
-        } else {
-            Service.nodeURL = "http://node02:" + Service.HTTP_PORT;
-        }
-        logger.log(java.util.logging.Level.INFO, ">>>---> nodeURL: {0}", Service.nodeURL);
+        loadEnvVar();
 
         new Service();
     }
@@ -115,7 +83,7 @@ public class Service {
         if (!NODE_ID.equals("node01"))
             return;
 
-        logger.info(">>>---> iniciando guarda de monitoracao.");
+        logger.info(">>>---> iniciando guarda de health.");
 
         Thread.ofVirtual().start(() -> {
             while (true) {
@@ -140,64 +108,81 @@ public class Service {
      * Processa a fila de pagamento.
      */
     public void startPayment() {
+        int pwID = 0;
+        for (; pwID < PAYMENT_PROCESSORS; pwID++) {
+            Thread.ofVirtual().name("P" + pwID).start(() -> {
 
-        for (int i = 0; i < 4; i++)
-            Thread.ofVirtual().start(() -> {
-                logger.info(">>>---> iniciando guarda de processamento de pagamento.");
+                ArrayBlockingQueue<byte[]> fila = new ArrayBlockingQueue<>(100);
+                dist.add(fila);
+                PaymentsClient pc = new PaymentsClient(Thread.currentThread().getName());
+
+                logger.log(Level.INFO, ">>>---> iniciando guarda de pagamento - {0}", Thread.currentThread().getName());
+
                 while (true) {
-                    if (!processamento.empty() && PaymentsClient.isAlmostReady() ) {
-                        while (!processamento.empty() && Thread.activeCount() < Service.MAX_THREAD) {
-                            try {
-                                Payment pd = processamento.pop();
-                                //Thread.ofVirtual().start(() -> {
-                                    PaymentsClient pc = new PaymentsClient();
-                                    pc.processPayment(pd);
-                                //});
-                            } catch (Exception e) {
-                                logger.log(Level.WARNING, "Erro no processamento da guarda de pagamento - {0}",
-                                        e.getMessage());
-                            }
-                        }
-                    }
+
                     try {
-                        Thread.sleep(Duration.ofMillis(Service.THREAD_DELAY));
+                        //if (pc.isFullReady())
+                            pc.processPayment(processamento.take(), (byte)0);
+
                     } catch (Exception e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                        logger.log(Level.WARNING, "Erro no processamento da guarda de pagamento - {0}",
+                                e.getMessage());
                     }
 
                 }
             });
+        }
+
+        Thread.ofVirtual().start(() -> {
+            try {
+                Thread.sleep(200);
+                logger.info(">>>---> iniciando distribuidor.");
+
+                while (true) {
+                    for (ArrayBlockingQueue<byte[]> x : dist) {
+                        try {
+                            x.offer(processamento.take());
+                        } catch (InterruptedException e) {
+                            logger.log(Level.WARNING, "Erro no processamento da guarda de distribuicao - {0}",
+                                    e.getMessage());
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            } catch (InterruptedException ex) {
+            }
+        });
 
         /**
          * Rebote da preferencia para o processador A
+         * 
+         * Thread.ofVirtual().start(() -> {
+         * logger.info(">>>---> iniciando guarda de processamento de rebote.");
+         * while (true) {
+         * if (!rebote.empty() && PaymentsClient.isAReady()) {
+         * while (!rebote.empty() && Thread.activeCount() < Service.MAX_THREAD + 100) {
+         * try {
+         * Payment pd = rebote.pop();
+         * //Thread.ofVirtual().start(() -> {
+         * PaymentsClient pc = new PaymentsClient();
+         * pc.processPayment(pd);
+         * //});
+         * 
+         * } catch (Exception e) {
+         * logger.log(Level.WARNING, "Erro no processamento da guarda de rebote - {0}",
+         * e.getMessage());
+         * }
+         * }
+         * try {
+         * Thread.sleep(Duration.ofMillis(1000));
+         * } catch (InterruptedException e) {
+         * // TODO Auto-generated catch block
+         * e.printStackTrace();
+         * }
+         * }
+         * }
+         * });
          */
-        Thread.ofVirtual().start(() -> {
-            logger.info(">>>---> iniciando guarda de processamento de rebote.");
-            while (true) {
-                if (!rebote.empty() && PaymentsClient.isAReady()) {
-                    while (!rebote.empty() && Thread.activeCount() < Service.MAX_THREAD + 100) {
-                        try {
-                            Payment pd = rebote.pop();
-                            //Thread.ofVirtual().start(() -> {
-                                PaymentsClient pc = new PaymentsClient();
-                                pc.processPayment(pd);
-                            //});
-
-                        } catch (Exception e) {
-                            logger.log(Level.WARNING, "Erro no processamento da guarda de rebote - {0}",
-                                    e.getMessage());
-                        }
-                    }
-                    try {
-                        Thread.sleep(Duration.ofMillis(1000));
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
 
     }
 
@@ -209,6 +194,7 @@ public class Service {
     public void start() throws IOException {
         serverHttp = HttpServer.create(new InetSocketAddress(Service.HTTP_PORT), 0);
         serverHttp.createContext("/", new Router());
+        //serverHttp.setExecutor(null);
         serverHttp.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         serverHttp.start();
         logger.log(Level.INFO, "Servidor HTTP - Iniciado na porta: {0}", Service.HTTP_PORT);
@@ -259,14 +245,14 @@ public class Service {
             } else if ("POST".equals(exchange.getRequestMethod()) &&
                     exchange.getRequestURI().getPath().equals("/payments")) {
 
-                //Thread.ofVirtual().start(() -> {
-                    try {
-                        Payments p = new Payments();
-                        p.process(exchange);
-                    } catch (Exception e) {
-                        logger.log(Level.INFO, ">>>---> problema processamento relatorio - {0}", e.getMessage());
-                    }
-               // });
+                // Thread.ofVirtual().start(() -> {
+                try {
+                    Payments p = new Payments();
+                    p.process(exchange);
+                } catch (Exception e) {
+                    logger.log(Level.INFO, ">>>---> problema processamento relatorio - {0}", e.getMessage());
+                }
+                // });
 
             } else {
                 exchange.sendResponseHeaders(405, -1);
@@ -276,4 +262,90 @@ public class Service {
 
     }
 
+    private static void loadEnvVar() throws IOException {
+        StringBuilder content = new StringBuilder();
+        try (InputStream inputStream = Service.class.getResourceAsStream("/version.fingerprint");
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n"); // Append newline character
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        logger.log(Level.INFO, ">>>---> Versao da aplicacao: {0}", content.toString());
+        logger.log(Level.INFO, ">>>---> Max Threads: {0}", Service.MAX_THREAD);
+        logger.log(Level.INFO, ">>>---> Porta do servidor: {0}", Service.HTTP_PORT);
+
+        String nodeId = System.getenv("NODE_ID");
+        if (nodeId != null) {
+            NODE_ID = nodeId;
+        } else {
+            NODE_ID = "node01";
+            logger.log(Level.SEVERE, "Nao informado o id do NO");
+        }
+        logger.log(Level.INFO, ">>>---> NODE_ID: {0}", NODE_ID);
+
+        String defaultURL = System.getenv("PAYMENT_PROCESSOR_DEFAULT");
+        if (defaultURL != null) {
+            Service.urlA = defaultURL;
+        } else {
+            Service.urlA = "http://localhost:8001";
+        }
+        logger.log(Level.INFO, ">>>---> Health URL A: {0}", Service.urlA);
+
+        String fallbackURL = System.getenv("PAYMENT_PROCESSOR_FALLBACK");
+        if (fallbackURL != null) {
+            Service.urlB = fallbackURL;
+        } else {
+            Service.urlB = "http://localhost:8002";
+        }
+        logger.log(Level.INFO, ">>>---> Health URL B: {0}", Service.urlB);
+
+        String pair = System.getenv("PAIR_URL");
+        if (pair != null) {
+            Service.pairURL = pair;
+        } else {
+            pairURL = "http://" + (Service.NODE_ID.equals("node02") ? "node01" : "node02") + ":" + Service.HTTP_PORT;
+        }
+        logger.log(java.util.logging.Level.INFO, ">>>---> pairURL: {0}", Service.pairURL);
+
+        String node = System.getenv("NODE_URL");
+        if (node != null) {
+            Service.nodeURL = node;
+        } else {
+            Service.nodeURL = "http://node02:" + Service.HTTP_PORT;
+        }
+        logger.log(java.util.logging.Level.INFO, ">>>---> nodeURL: {0}", Service.nodeURL);
+
+        String conn_to = System.getenv("CONN_TO");
+        if (conn_to != null) {
+            Service.CONN_TO = Integer.parseInt( conn_to );
+        }
+        logger.log(java.util.logging.Level.INFO, ">>>---> CONN_TO: {0}", Service.CONN_TO);
+
+        String req_to = System.getenv("REQ_TO");
+        if (req_to != null) {
+            Service.CONN_TO = Integer.parseInt( req_to );
+        }
+        logger.log(java.util.logging.Level.INFO, ">>>---> REQ_TO: {0}", Service.REQ_TO);
+
+        String pp = System.getenv("PAYMENT_PROCESSORS");
+        if (pp != null) {
+            Service.PAYMENT_PROCESSORS = Integer.parseInt( pp );
+        }
+        logger.log(java.util.logging.Level.INFO, ">>>---> PAYMENT_PROCESSORS: {0}", Service.PAYMENT_PROCESSORS);
+
+
+        String sd = System.getenv("SUMM_DELAY");
+        if (sd != null) {
+            Service.SUMM_DELAY = Integer.parseInt( sd );
+        }
+        logger.log(java.util.logging.Level.INFO, ">>>---> SUMM_DELAY: {0}", Service.SUMM_DELAY);
+
+    }
 }
