@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tag="ghcr.io/rst77/app:11"
+tag="ghcr.io/rst77/app:12"
 
 echo $(date +"%Y-%m-%d at %H:%M:%S") - $tag > src/main/resources/version.fingerprint
 
@@ -31,6 +31,7 @@ if [ "$1" != "pgo" ]; then
 fi
 
 if [ "$1" == "pgo" ]; then
+ cp target/app-ins target/app
     docker compose -f docker-compose-pgo.yml down 
     docker image rm $tag
     docker build -t $tag -f app.Dockerfile  . --no-cache --progress=plain

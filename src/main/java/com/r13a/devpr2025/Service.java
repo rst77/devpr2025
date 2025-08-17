@@ -4,13 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,9 +21,10 @@ import com.r13a.devpr2025.entity.Payment;
 import com.r13a.devpr2025.service.Payments;
 import com.r13a.devpr2025.service.Summary;
 import com.r13a.devpr2025.service.UpdateHealth;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+
+import io.undertow.Undertow;
+import io.undertow.server.HttpHandler;
 
 public class Service {
 
@@ -40,14 +39,13 @@ public class Service {
     public static int CONN_TO = 100;
     public static int REQ_TO = 15;
 
-
     public static String NODE_ID;
 
     public final static LinkedTransferQueue<byte[]> processamento = new LinkedTransferQueue<>();
     public final static List<ArrayBlockingQueue<byte[]>> dist = new ArrayList<>();
 
-    public final static LinkedTransferQueue<Payment> resultadoA  = new LinkedTransferQueue<>();
-    public final static LinkedTransferQueue<Payment> resultadoB  = new LinkedTransferQueue<>();
+    public final static LinkedTransferQueue<Payment> resultadoA = new LinkedTransferQueue<>();
+    public final static LinkedTransferQueue<Payment> resultadoB = new LinkedTransferQueue<>();
 
     public static String urlA = null;
     public static String urlB = null;
@@ -112,7 +110,7 @@ public class Service {
         for (; pwID < PAYMENT_PROCESSORS; pwID++) {
             Thread.ofVirtual().name("P" + pwID).start(() -> {
 
-                ArrayBlockingQueue<byte[]> fila = new ArrayBlockingQueue<>(100);
+                ArrayBlockingQueue<byte[]> fila = new ArrayBlockingQueue<>(1000);
                 dist.add(fila);
                 PaymentsClient pc = new PaymentsClient(Thread.currentThread().getName());
 
@@ -121,8 +119,8 @@ public class Service {
                 while (true) {
 
                     try {
-                        //if (pc.isFullReady())
-                            pc.processPayment(processamento.take(), (byte)0);
+                        // if (pc.isFullReady())
+                        pc.processPayment(processamento.take(), (byte) 0);
 
                     } catch (Exception e) {
                         logger.log(Level.WARNING, "Erro no processamento da guarda de pagamento - {0}",
@@ -152,38 +150,6 @@ public class Service {
             } catch (InterruptedException ex) {
             }
         });
-
-        /**
-         * Rebote da preferencia para o processador A
-         * 
-         * Thread.ofVirtual().start(() -> {
-         * logger.info(">>>---> iniciando guarda de processamento de rebote.");
-         * while (true) {
-         * if (!rebote.empty() && PaymentsClient.isAReady()) {
-         * while (!rebote.empty() && Thread.activeCount() < Service.MAX_THREAD + 100) {
-         * try {
-         * Payment pd = rebote.pop();
-         * //Thread.ofVirtual().start(() -> {
-         * PaymentsClient pc = new PaymentsClient();
-         * pc.processPayment(pd);
-         * //});
-         * 
-         * } catch (Exception e) {
-         * logger.log(Level.WARNING, "Erro no processamento da guarda de rebote - {0}",
-         * e.getMessage());
-         * }
-         * }
-         * try {
-         * Thread.sleep(Duration.ofMillis(1000));
-         * } catch (InterruptedException e) {
-         * // TODO Auto-generated catch block
-         * e.printStackTrace();
-         * }
-         * }
-         * }
-         * });
-         */
-
     }
 
     /**
@@ -192,12 +158,25 @@ public class Service {
      * @throws IOException
      */
     public void start() throws IOException {
-        serverHttp = HttpServer.create(new InetSocketAddress(Service.HTTP_PORT), 0);
-        serverHttp.createContext("/", new Router());
-        //serverHttp.setExecutor(null);
-        serverHttp.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
-        serverHttp.start();
+
+        //serverHttp = HttpServer.create(new InetSocketAddress(Service.HTTP_PORT), 0);
+        //serverHttp.createContext("/", new Router());
+        // serverHttp.setExecutor(null);
+        //serverHttp.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+        //serverHttp.start();
+
+        Undertow server = Undertow.builder()
+                .addHttpListener(Service.HTTP_PORT, "0.0.0.0")
+                .setHandler(getHandleRequest())
+                .setIoThreads(2)
+                .setWorkerThreads(8)
+                .setDirectBuffers(true)
+                .setBufferSize(256)
+                .build();
+        server.start();
+
         logger.log(Level.INFO, "Servidor HTTP - Iniciado na porta: {0}", Service.HTTP_PORT);
+
     }
 
     public void stop() {
@@ -205,7 +184,7 @@ public class Service {
             serverHttp.stop(Service.HTTP_PORT);
         }
     }
-
+/*
     static class Router implements HttpHandler {
 
         @Override
@@ -259,8 +238,16 @@ public class Service {
                 exchange.close();
             }
         }
+*/
+        public HttpHandler getHandleRequest() {
+            return new io.undertow.server.handlers.PathHandler()
+                    .addExactPath("/payments", new Payments())
+                    .addExactPath("/payments-summary", new Summary())
+                    .addExactPath("/payments-data", new Summary())
+                    .addExactPath("/update-health", new UpdateHealth());
+        }
 
-    }
+ 
 
     private static void loadEnvVar() throws IOException {
         StringBuilder content = new StringBuilder();
@@ -324,26 +311,25 @@ public class Service {
 
         String conn_to = System.getenv("CONN_TO");
         if (conn_to != null) {
-            Service.CONN_TO = Integer.parseInt( conn_to );
+            Service.CONN_TO = Integer.parseInt(conn_to);
         }
         logger.log(java.util.logging.Level.INFO, ">>>---> CONN_TO: {0}", Service.CONN_TO);
 
         String req_to = System.getenv("REQ_TO");
         if (req_to != null) {
-            Service.CONN_TO = Integer.parseInt( req_to );
+            Service.CONN_TO = Integer.parseInt(req_to);
         }
         logger.log(java.util.logging.Level.INFO, ">>>---> REQ_TO: {0}", Service.REQ_TO);
 
         String pp = System.getenv("PAYMENT_PROCESSORS");
         if (pp != null) {
-            Service.PAYMENT_PROCESSORS = Integer.parseInt( pp );
+            Service.PAYMENT_PROCESSORS = Integer.parseInt(pp);
         }
         logger.log(java.util.logging.Level.INFO, ">>>---> PAYMENT_PROCESSORS: {0}", Service.PAYMENT_PROCESSORS);
 
-
         String sd = System.getenv("SUMM_DELAY");
         if (sd != null) {
-            Service.SUMM_DELAY = Integer.parseInt( sd );
+            Service.SUMM_DELAY = Integer.parseInt(sd);
         }
         logger.log(java.util.logging.Level.INFO, ">>>---> SUMM_DELAY: {0}", Service.SUMM_DELAY);
 

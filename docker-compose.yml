@@ -1,24 +1,24 @@
 x-backend-templates:
   app: &app
-    image: ghcr.io/rst77/app:10
+    image: ghcr.io/rst77/app:12
     networks:
       - payment-processor
       - rinha-net
     deploy:
       resources:
         limits:
-          cpus: "0.65"
-          memory: "170MB"
+          cpus: "0.55"
+          memory: "160MB"
 
   app-env: &app-env    
-    PAYMENT_PROCESSORS: "8"
+    PAYMENT_PROCESSORS: "40"
     CONN_TO: "60"
     REQ_TO: "15"
-    SUMM_DELAY: "1200"
-    PAYMENT_PROCESSOR_FALLBACK: http://lb:9999/pf
-    PAYMENT_PROCESSOR_DEFAULT: http://lb:9999/pd
-    #PAYMENT_PROCESSOR_FALLBACK: http://payment-processor-fallback:8080
-    #PAYMENT_PROCESSOR_DEFAULT: http://payment-processor-default:8080
+    SUMM_DELAY: "1000"
+    #PAYMENT_PROCESSOR_FALLBACK: http://lb:9999/pf
+    #PAYMENT_PROCESSOR_DEFAULT: http://lb:9999/pd
+    PAYMENT_PROCESSOR_FALLBACK: http://payment-processor-fallback:8080
+    PAYMENT_PROCESSOR_DEFAULT: http://payment-processor-default:8080
 
 services:
   nginx:
@@ -38,8 +38,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.20"
-          memory: "10MB"
+          cpus: "0.40"
+          memory: "30MB"
   
   node01: 
     <<: *app
@@ -51,7 +51,6 @@ services:
 
   node02: 
     <<: *app
-    image: ghcr.io/rst77/app:10
     container_name: node02
     hostname: node02
     environment:

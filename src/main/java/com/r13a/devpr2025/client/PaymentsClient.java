@@ -120,13 +120,15 @@ public class PaymentsClient {
 
     }
 
-    public void chamaA(byte[] pd) {
-
-        try {
 
             HttpClient clientA = HttpClient.newBuilder()
                     .connectTimeout(Duration.ofMillis(Service.CONN_TO - 10))
                     .build();
+                    
+    public void chamaA(byte[] pd) {
+
+        try {
+
 
             HttpRequest requestA = HttpRequest.newBuilder()
                     .uri(URI.create(Service.urlA + "/payments"))
@@ -148,23 +150,22 @@ public class PaymentsClient {
         } catch (HttpTimeoutException ex) {
             processPayment(pd, (byte)2);
         } catch (IOException | InterruptedException ex) {
-            logger.log(Level.INFO, ">>>---> Erro na chamada do payment DEFAULT - {0} / {1}", new Object[] { ex.getMessage(), ex.getClass().toString() });
                 processPayment(pd, (byte)2);
 
         }
     }
 
-    public void chamaB(byte[] pd) {
-        try {
             HttpClient clientB = HttpClient.newBuilder()
                     .connectTimeout(Duration.ofMillis(Service.CONN_TO))
                     .build();
+    public void chamaB(byte[] pd) {
+        try {
 
             HttpRequest requestB = HttpRequest.newBuilder()
                     .uri(URI.create(Service.urlB + "/payments"))
                     .timeout(java.time.Duration.ofSeconds(Service.REQ_TO))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(pd))
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(pd)).expectContinue(true)
                     .build();
 
             HttpResponse<String> resp = clientB.send(requestB, BodyHandlers.ofString());
@@ -173,19 +174,15 @@ public class PaymentsClient {
                 addProcessamento(pd, (byte)2);
             }
             else if (resp.statusCode() == 422) {
-                logger.log(Level.WARNING, "######################################### DUPLICADO");
+                    // registro duplicado
             }
             else
-                logger.log(Level.WARNING, "Problema no processamento B - code: {0} - body: {1}", new Object[] { resp.statusCode(), resp.body() });
-
-                //Service.rebote.add(pd);
+               processPayment(pd, (byte)2);
 
         } catch (HttpTimeoutException ex) {
             // Faz parte.
         } catch (IOException | InterruptedException ex) {
-            logger.log(Level.INFO, ">>>---> Erro na chamada do payment FALLBACK - {0} / {1}",
-                    new Object[] { ex.getMessage(), ex.getClass().toString() });
-            //Service.rebote.add(pd);
+            processPayment(pd, (byte)2);
         }
 
     }

@@ -6,7 +6,6 @@ Essa é a minha participação na lendária [**Rinha de Backend 2025**](https://
 
 * **Java** - Por que não?
 * **GraalVM**  - JDK de alta performance!
-* **gRPC** - Não facilito pois dificil é mais divertido.
 
 ## Repositório no GitHub
 
