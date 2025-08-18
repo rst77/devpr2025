@@ -13,7 +13,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.r13a.devpr2025.Service;
@@ -41,13 +40,14 @@ public class PaymentsClient {
 
     }
 
+    /**
+     * Atualiza os status dos serviços.
+     */
     public static void setStatus(Health cd) {
-        //logger.info(">>>---> Atualizado status");
         ativoA = cd.isStatusA();
         reqTimeoutA = cd.getMinResponseTimeA();
         ativoB = cd.isStatusB();
         reqTimeoutB = cd.getMinResponseTimeB();
-        //logger.log(Level.INFO, ">>>---> Threads Ativas: [{0}]", Thread.activeCount());
 
     }
 
@@ -80,7 +80,7 @@ public class PaymentsClient {
             }
 
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Problemas no processamento de decisao do cliente. - instancia: {0}", instanceName);
+            // Só vai
         }
 
     }
@@ -216,10 +216,7 @@ public class PaymentsClient {
 
     public static boolean isBReady() {
 
-        //if (PaymentsClient.ativoB)
             return true;
-
-        //return false;
 
     }
 

@@ -159,12 +159,6 @@ public class Service {
      */
     public void start() throws IOException {
 
-        //serverHttp = HttpServer.create(new InetSocketAddress(Service.HTTP_PORT), 0);
-        //serverHttp.createContext("/", new Router());
-        // serverHttp.setExecutor(null);
-        //serverHttp.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
-        //serverHttp.start();
-
         Undertow server = Undertow.builder()
                 .addHttpListener(Service.HTTP_PORT, "0.0.0.0")
                 .setHandler(getHandleRequest())
@@ -184,61 +178,7 @@ public class Service {
             serverHttp.stop(Service.HTTP_PORT);
         }
     }
-/*
-    static class Router implements HttpHandler {
 
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            if ("GET".equals(exchange.getRequestMethod()) &&
-                    exchange.getRequestURI().getPath().equals("/payments-summary")) {
-                Thread.ofVirtual().start(() -> {
-                    try {
-                        Summary s = new Summary();
-                        s.process(exchange);
-                    } catch (Exception e) {
-                        logger.log(Level.INFO, ">>>---> problema processamento relatorio - {0}", e.getMessage());
-                    }
-                });
-            } else if ("GET".equals(exchange.getRequestMethod()) &&
-                    exchange.getRequestURI().getPath().equals("/payments-data")) {
-                Thread.ofVirtual().start(() -> {
-                    try {
-                        Summary s = new Summary();
-                        s.data(exchange);
-                    } catch (Exception e) {
-                        logger.log(Level.INFO, ">>>---> problema para obter parte dos relatorio - {0}",
-                                e.getMessage());
-                    }
-                });
-            } else if ("POST".equals(exchange.getRequestMethod()) &&
-                    exchange.getRequestURI().getPath().equals("/update-health")) {
-                Thread.ofVirtual().start(() -> {
-                    try {
-                        UpdateHealth uh = new UpdateHealth();
-                        uh.process(exchange);
-                    } catch (Exception e) {
-                        logger.log(Level.INFO, ">>>---> problema processamento relatorio - {0}", e.getMessage());
-                    }
-                });
-
-            } else if ("POST".equals(exchange.getRequestMethod()) &&
-                    exchange.getRequestURI().getPath().equals("/payments")) {
-
-                // Thread.ofVirtual().start(() -> {
-                try {
-                    Payments p = new Payments();
-                    p.process(exchange);
-                } catch (Exception e) {
-                    logger.log(Level.INFO, ">>>---> problema processamento relatorio - {0}", e.getMessage());
-                }
-                // });
-
-            } else {
-                exchange.sendResponseHeaders(405, -1);
-                exchange.close();
-            }
-        }
-*/
         public HttpHandler getHandleRequest() {
             return new io.undertow.server.handlers.PathHandler()
                     .addExactPath("/payments", new Payments())

@@ -10,7 +10,6 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,9 +46,7 @@ public class NodeClient {
 
             client.close();
         } catch (IOException | InterruptedException ex) {
-            logger.log(Level.INFO, ">>>---> Erro na chamada do payment DEFAULT - {0} / {1}",
-                    new Object[] { ex.getMessage(), ex.getClass().toString() });
-
+            // So vai
         }
     }
 
@@ -82,16 +79,11 @@ public class NodeClient {
                 return total;
 
             } else {
-                logger.log(
-                        java.util.logging.Level.WARNING,
-                        ">>>---> Problemas ao obter dados do sumario n nó: {0} - Codigo retorno: {1}",
-                        new Object[] { Service.pairURL, resp.statusCode() });
+                // Segue a vida.
             }
             client.close();
         } catch (IOException | InterruptedException ex) {
-            logger.log(Level.INFO, ">>>---> Erro na chamada peer summary - {0} / {1}",
-                    new Object[] { ex.getMessage(), ex.getClass().toString() });
-
+            // Bola em jogo.
         }
 
         return null;
