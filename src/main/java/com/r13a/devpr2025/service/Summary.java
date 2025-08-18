@@ -1,6 +1,7 @@
 package com.r13a.devpr2025.service;
 
-import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -14,12 +15,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.r13a.devpr2025.Service;
 import com.r13a.devpr2025.client.NodeClient;
 import com.r13a.devpr2025.entity.Total;
-import com.sun.net.httpserver.HttpExchange;
 
+import io.undertow.server.HttpHandler;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.util.HttpString;
 
+public class Summary implements HttpHandler {
 
-
-public class Summary {
+    private static final String CONTENT_TYPE = "application/json";
+    private static final HttpString CONTENT_TYPE_HEADER = new HttpString("Content-Type");
 
     private static final Logger logger = Logger.getLogger(Summary.class.getName());
     // Resposta do processamento do par.
@@ -37,112 +41,94 @@ public class Summary {
 
         Total total = new Total();
         Service.resultadoA
-                    .stream()
-                    .filter(e -> e.getRequestedAt() >= from.toEpochMilli() &&
-                            e.getRequestedAt() <= to.toEpochMilli())
-                    .forEach((e) -> {
-                            total.totalDefault++;
-                            total.somaDefault += e.getAmount();
-                    });
+                .stream()
+                .filter(e -> e.getRequestedAt() >= from.toEpochMilli() &&
+                        e.getRequestedAt() <= to.toEpochMilli())
+                .forEach((e) -> {
+                    total.totalDefault++;
+                    total.somaDefault += e.getAmount();
+                });
 
         Service.resultadoB
-                    .stream()
-                    .filter(e -> e.getRequestedAt() >= from.toEpochMilli() &&
-                            e.getRequestedAt() <= to.toEpochMilli())
-                    .forEach((e) -> {
-                            total.totalFallback++;
-                            total.somaFallback += e.getAmount();
-                    });
-                    
+                .stream()
+                .filter(e -> e.getRequestedAt() >= from.toEpochMilli() &&
+                        e.getRequestedAt() <= to.toEpochMilli())
+                .forEach((e) -> {
+                    total.totalFallback++;
+                    total.somaFallback += e.getAmount();
+                });
+
         return total;
     }
 
     /**
      * Gera resposta ao pedido dedados do resumo.
-     * @param total Totais a ser respondido.
+     * 
+     * @param total    Totais a ser respondido.
      * @param exchange
-     * @throws Exception 
+     * @throws Exception
      */
-    public void retorna(Total total, HttpExchange exchange) throws Exception {
+    public String retorna(Total total, HttpServerExchange exchange) throws Exception {
 
         try {
 
-        StringBuilder bodyString = new StringBuilder();
-        bodyString.append("{ \"default\" : {\"totalRequests\": ");
-        bodyString.append(total.totalDefault);
-        bodyString.append(",\"totalAmount\": ");
-        bodyString.append(total.somaDefault);
-        bodyString.append("}, \"fallback\" : {\"totalRequests\": ");
-        bodyString.append(total.totalFallback);
-        bodyString.append(",\"totalAmount\": ");
-        bodyString.append(total.somaFallback);
-        bodyString.append("}}");
+            StringBuilder bodyString = new StringBuilder();
+            bodyString.append("{ \"default\" : {\"totalRequests\": ");
+            bodyString.append(total.totalDefault);
+            bodyString.append(",\"totalAmount\": ");
+            bodyString.append(total.somaDefault);
+            bodyString.append("}, \"fallback\" : {\"totalRequests\": ");
+            bodyString.append(total.totalFallback);
+            bodyString.append(",\"totalAmount\": ");
+            bodyString.append(total.somaFallback);
+            bodyString.append("}}");
 
-        exchange.sendResponseHeaders(200, bodyString.length());
-        OutputStream os = exchange.getResponseBody();
-        os.write(bodyString.toString().getBytes());
-        os.close();
+            return bodyString.toString();
+
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Problemas no processamento da resposta do relatorio - Mensagem: {0} - Classe: {1}", new Object[] {e.getMessage(), e.getClass().toString()});
+            logger.log(Level.WARNING,
+                    "Problemas no processamento da resposta do relatorio - Mensagem: {0} - Classe: {1}",
+                    new Object[] { e.getMessage(), e.getClass().toString() });
             throw new Exception(e);
         }
-
     }
 
     /**
      * Retorna o sumario do servidor local.
      */
-    public void data(HttpExchange exchange) throws Exception {
-        Map<String, String> params = getParamMap(exchange.getRequestURI().getQuery());
+    public String data(HttpServerExchange exchange) throws Exception {
 
-        Instant from = params.get("from") == null ? Instant.now() : Instant.parse(params.get("from"));
-        Instant to = params.get("to") == null ? Instant.now() : Instant.parse(params.get("to"));
-        //logger.log(Level.INFO, ">>>---> from: {0}", from.toString());
-        //logger.log(Level.INFO, ">>>---> to: {0}", to.toString());
+        String sFrom = exchange.getQueryParameters().get("from").getFirst();
+        String sTo = exchange.getQueryParameters().get("to").getFirst();
 
+        Instant from = (sFrom == null) ? Instant.now() : Instant.parse(sFrom);
+        Instant to = (sTo == null) ? Instant.now() : Instant.parse(sTo);
 
         Thread.sleep(Duration.ofMillis(Service.SUMM_DELAY));
 
-
         Total total = calculate(from, to);
         ObjectMapper mapa = new ObjectMapper();
-        String bodyString = mapa.writeValueAsString(total);        
-        exchange.sendResponseHeaders(200, bodyString.length());
-        OutputStream os = exchange.getResponseBody();
-        os.write(bodyString.getBytes());
-        os.close();
-        limpa(to);
+
+        return mapa.writeValueAsString(total);
     }
 
     /**
      * Processa o total geral processado.
      */
-    public void process(HttpExchange exchange) throws Exception {
-        Map<String, String> params = getParamMap(exchange.getRequestURI().getQuery());
+    public String process(HttpServerExchange exchange) throws Exception {
+        String sFrom = exchange.getQueryParameters().get("from").getFirst();
+        String sTo = exchange.getQueryParameters().get("to").getFirst();
 
-        Instant from = params.get("from") == null ? Instant.now() : Instant.parse(params.get("from"));
-        Instant to = params.get("to") == null ? Instant.now() : Instant.parse(params.get("to"));
-        //logger.log(Level.INFO, ">>>---> from: {0}", from.toString());
-        //logger.log(Level.INFO, ">>>---> to: {0}", to.toString());
+        Instant from = (sFrom == null) ? Instant.now() : Instant.parse(sFrom);
+        Instant to = (sTo == null) ? Instant.now() : Instant.parse(sTo);
 
+        NodeClient nc = new NodeClient();
+        totalPar = nc.requestSummary(from, to);
 
-       // Thread t = Thread.ofVirtual().start(() -> {
-            //logger.info(">>>---> pedindo resumo do par");
-
-            NodeClient nc = new NodeClient();
-            totalPar = nc.requestSummary(from, to);
-
-        //});
-
-        //Thread.sleep(Duration.ofMillis(Service.SUMM_DELAY));
         Total total = calculate(from, to);
-
-        // Espera resposta do par.
-        //while (t.isAlive()) {}
 
         logger.log(Level.INFO, "Dados Locais: {0}", mapa.writeValueAsString(total));
         logger.log(Level.INFO, "Dados Par   : {0}", mapa.writeValueAsString(totalPar));
-
 
         if (totalPar != null) {
             total.totalDefault += totalPar.totalDefault;
@@ -151,8 +137,7 @@ public class Summary {
             total.somaFallback += totalPar.somaFallback;
         }
 
-        retorna(total, exchange);
-        limpa(to);
+        return retorna(total, exchange);
     }
 
     /**
@@ -167,5 +152,26 @@ public class Summary {
                 .map(kv -> kv.split("=", 2))
                 .collect(Collectors.toMap(x -> x[0], x -> x[1]));
 
+    }
+
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+        if (exchange.getRequestPath().equals("/payments-summary")) {
+
+            exchange.setStatusCode(200);
+            exchange.getResponseHeaders().put(CONTENT_TYPE_HEADER, CONTENT_TYPE);
+            exchange.getResponseSender()
+                    .send(ByteBuffer
+                            .wrap(process(exchange).getBytes(StandardCharsets.UTF_8)));
+
+        } else if (exchange.getRequestPath().equals("/payments-data")) {
+
+            exchange.setStatusCode(200);
+            exchange.getResponseHeaders().put(CONTENT_TYPE_HEADER, CONTENT_TYPE);
+            exchange.getResponseSender()
+                    .send(ByteBuffer
+                            .wrap(data(exchange).getBytes(StandardCharsets.UTF_8)));
+
+        }
     }
 }

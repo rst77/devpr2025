@@ -1,3 +1,25 @@
+x-backend-templates:
+  app: &app
+    image: ghcr.io/rst77/app:11
+    networks:
+      - payment-processor
+      - rinha-net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.65"
+          memory: "170MB"
+
+  app-env: &app-env    
+    PAYMENT_PROCESSORS: "20"
+    CONN_TO: "60"
+    REQ_TO: "15"
+    SUMM_DELAY: "1000"
+    #PAYMENT_PROCESSOR_FALLBACK: http://lb:9999/pf
+    #PAYMENT_PROCESSOR_DEFAULT: http://lb:9999/pd
+    PAYMENT_PROCESSOR_FALLBACK: http://payment-processor-fallback:8080
+    PAYMENT_PROCESSOR_DEFAULT: http://payment-processor-default:8080
+
 services:
   nginx:
     image: nginx:1.25-alpine
@@ -20,51 +42,26 @@ services:
           memory: "10MB"
   
   node01: 
-    image: ghcr.io/rst77/app:10
+    <<: *app
     container_name: node01
     hostname: node01
     volumes:
       - ./pgo/node01:/app
     environment:
-          PAYMENT_PROCESSORS: "15"
-          CONN_TO: "100"
-          REQ_TO: "15"
-          SUMM_DELAY: "800"
-          PAYMENT_PROCESSOR_FALLBACK: http://payment-processor-fallback:8080
-          PAYMENT_PROCESSOR_DEFAULT: http://payment-processor-default:8080
+          <<: *app-env
           NODE_ID: node01
-    networks:
-      - payment-processor
-      - rinha-net
-    deploy:
-      resources:
-        limits:
-          cpus: "0.65"
-          memory: "170MB"
 
   node02: 
+    <<: *app
     image: ghcr.io/rst77/app:10
     container_name: node02
-    hostname: node02
     volumes:
       - ./pgo/node02:/app
+    hostname: node02
     environment:
-          PAYMENT_PROCESSORS: "15"
-          CONN_TO: "100"
-          REQ_TO: "15"
-          SUMM_DELAY: "800"
-          PAYMENT_PROCESSOR_FALLBACK: http://payment-processor-fallback:8080
-          PAYMENT_PROCESSOR_DEFAULT: http://payment-processor-default:8080
+          <<: *app-env
           NODE_ID: node02
-    networks:
-      - payment-processor
-      - rinha-net
 
-    deploy:
-      resources:
-        limits:
-          cpus: "0.65"
-          memory: "170MB"
 
 networks:
   payment-processor:
