@@ -20,7 +20,6 @@ import com.r13a.rinha2025.entity.Health;
 import com.r13a.rinha2025.entity.Payment;
 
 public class PaymentsClient {
-    private static final Logger logger = Logger.getLogger(PaymentsClient.class.getName());
 
     private static boolean ativoA = true;
     private static boolean ativoB = true;
@@ -32,13 +31,6 @@ public class PaymentsClient {
 
     private static final ThreadLocal<ByteBuffer> BUFFER = ThreadLocal.withInitial(() -> ByteBuffer.allocate(256));
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME.withZone(ZoneOffset.UTC);
-
-    private final String instanceName;
-
-    public PaymentsClient(String instanceName) {
-        this.instanceName = instanceName;
-
-    }
 
     /**
      * Atualiza os status dos serviços.

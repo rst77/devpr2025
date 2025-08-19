@@ -9,8 +9,6 @@ import io.undertow.server.HttpServerExchange;
 
 public class Payments  implements HttpHandler {
 
-    private static final Logger logger = Logger.getLogger(Payments.class.getName());
-
     @Override
     public void handleRequest(HttpServerExchange exchange) {
         exchange.getRequestReceiver().receiveFullBytes((ex, data) -> {

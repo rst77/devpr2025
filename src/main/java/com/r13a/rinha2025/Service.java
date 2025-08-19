@@ -112,7 +112,7 @@ public class Service {
 
                 ArrayBlockingQueue<byte[]> fila = new ArrayBlockingQueue<>(1000);
                 dist.add(fila);
-                PaymentsClient pc = new PaymentsClient(Thread.currentThread().getName());
+                PaymentsClient pc = new PaymentsClient();
 
                 logger.log(Level.INFO, ">>>---> iniciando guarda de pagamento - {0}", Thread.currentThread().getName());
 
