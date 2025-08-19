@@ -1,4 +1,4 @@
-package com.r13a.devpr2025.service;
+package com.r13a.rinha2025.service;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.r13a.devpr2025.Service;
-import com.r13a.devpr2025.client.NodeClient;
-import com.r13a.devpr2025.entity.Total;
+import com.r13a.rinha2025.Service;
+import com.r13a.rinha2025.client.NodeClient;
+import com.r13a.rinha2025.entity.Total;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;

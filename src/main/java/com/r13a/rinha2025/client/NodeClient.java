@@ -1,4 +1,4 @@
-package com.r13a.devpr2025.client;
+package com.r13a.rinha2025.client;
 
 import java.io.IOException;
 import java.net.URI;
@@ -13,9 +13,9 @@ import java.time.Instant;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.r13a.devpr2025.Service;
-import com.r13a.devpr2025.entity.Health;
-import com.r13a.devpr2025.entity.Total;
+import com.r13a.rinha2025.Service;
+import com.r13a.rinha2025.entity.Health;
+import com.r13a.rinha2025.entity.Total;
 
 public class NodeClient {
     private static final Logger logger = Logger.getLogger(NodeClient.class.getName());

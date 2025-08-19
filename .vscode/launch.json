@@ -10,7 +10,7 @@
             "type": "java",
             "name": "Service",
             "request": "launch",
-            "mainClass": "com.r13a.devpr2025.Service",
+            "mainClass": "com.r13a.rinha2025.Service",
             "env": {
                 "PAIR_URL": "http://localhost:9990",
                 "NODE_URL": "http://localhost:9990",

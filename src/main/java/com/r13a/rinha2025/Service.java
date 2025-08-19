@@ -1,4 +1,4 @@
-package com.r13a.devpr2025;
+package com.r13a.rinha2025;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,14 +13,14 @@ import java.util.concurrent.LinkedTransferQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.r13a.devpr2025.client.HealthClient;
-import com.r13a.devpr2025.client.NodeClient;
-import com.r13a.devpr2025.client.PaymentsClient;
-import com.r13a.devpr2025.entity.Health;
-import com.r13a.devpr2025.entity.Payment;
-import com.r13a.devpr2025.service.Payments;
-import com.r13a.devpr2025.service.Summary;
-import com.r13a.devpr2025.service.UpdateHealth;
+import com.r13a.rinha2025.client.HealthClient;
+import com.r13a.rinha2025.client.NodeClient;
+import com.r13a.rinha2025.client.PaymentsClient;
+import com.r13a.rinha2025.entity.Health;
+import com.r13a.rinha2025.entity.Payment;
+import com.r13a.rinha2025.service.Payments;
+import com.r13a.rinha2025.service.Summary;
+import com.r13a.rinha2025.service.UpdateHealth;
 import com.sun.net.httpserver.HttpServer;
 
 import io.undertow.Undertow;

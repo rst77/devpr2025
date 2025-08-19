@@ -18,7 +18,7 @@
     <jdk.version>21</jdk.version>
     <release.version>21</release.version>
     <micronaut.version>4.9.1</micronaut.version>
-    <exec.mainClass>com.r13a.devpr2025.api.ApiService</exec.mainClass>
+    <exec.mainClass>com.r13a.rinha2025.api.ApiService</exec.mainClass>
   </properties>
 
   <profiles>
@@ -45,7 +45,7 @@
               <buildArgs>
                   <buildArg>--pgo-instrument --gc=G1</buildArg>
               </buildArgs>
-              <mainClass>com.r13a.devpr2025.Service</mainClass>
+              <mainClass>com.r13a.rinha2025.Service</mainClass>
             </configuration>
           </plugin>
         </plugins>
@@ -74,7 +74,7 @@
               <buildArgs>
                   <buildArg>-Ob --gc=G1</buildArg>
               </buildArgs>
-              <mainClass>com.r13a.devpr2025.Service</mainClass>
+              <mainClass>com.r13a.rinha2025.Service</mainClass>
             </configuration>
           </plugin>
         </plugins>
@@ -106,7 +106,7 @@
                   <buildArg>--gc=G1</buildArg>
                   <buildArg>--pgo=./pgo/node01/default.iprof</buildArg>
               </buildArgs>
-              <mainClass>com.r13a.devpr2025.Service</mainClass>
+              <mainClass>com.r13a.rinha2025.Service</mainClass>
             </configuration>
           </plugin>
         </plugins>
@@ -151,7 +151,7 @@
       <configuration>
         <archive>
           <manifest>
-            <mainClass>com.r13a.devpr2025.Service</mainClass>
+            <mainClass>com.r13a.rinha2025.Service</mainClass>
           </manifest>
         </archive>
         <descriptorRefs>

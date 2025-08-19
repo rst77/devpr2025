@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tag="ghcr.io/rst77/app:12"
+tag="ghcr.io/rst77/app:20"
 
 echo $(date +"%Y-%m-%d at %H:%M:%S") - $tag > src/main/resources/version.fingerprint
 
@@ -23,19 +23,19 @@ elif [ "$1" == "opt" ]; then
 fi
 
 if [ "$1" != "pgo" ]; then
-    docker compose down &
+    docker-compose down &
     docker image rm $tag
-    docker build -t $tag -f app.Dockerfile  . --no-cache --progress=plain
+    docker build -t $tag -f app.Dockerfile  . --no-cache 
     docker push     $tag
     docker push $tag
 fi
 
 if [ "$1" == "pgo" ]; then
  cp target/app-ins target/app
-    docker compose -f docker-compose-pgo.yml down 
+    docker-compose -f docker-compose-pgo.yml down 
     docker image rm $tag
-    docker build -t $tag -f app.Dockerfile  . --no-cache --progress=plain
+    docker build -t $tag -f app.Dockerfile  . --no-cache 
     docker push     $tag
     docker push $tag
-    docker compose -f docker-compose-pgo.yml up 
+    docker-compose -f docker-compose-pgo.yml up 
 fi

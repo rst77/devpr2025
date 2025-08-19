@@ -9,4 +9,4 @@ Essa é a minha participação na lendária [**Rinha de Backend 2025**](https://
 
 ## Repositório no GitHub
 
-Dê uma olhada no [código fonte](https://github.com/rst77/devpr2025).
+Dê uma olhada no [código fonte](https://github.com/rst77/rinha-2025).

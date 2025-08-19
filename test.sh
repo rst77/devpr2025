@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tag="ghcr.io/rst77/app:11"
+tag="ghcr.io/rst77/app:20"
 
 echo TEST - $(date +"%Y-%m-%d at %H:%M:%S") - $tag > src/main/resources/version.fingerprint
 docker compose  -f docker-compose.yml down

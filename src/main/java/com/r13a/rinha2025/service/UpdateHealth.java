@@ -1,10 +1,10 @@
-package com.r13a.devpr2025.service;
+package com.r13a.rinha2025.service;
 
 import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.r13a.devpr2025.client.PaymentsClient;
-import com.r13a.devpr2025.entity.Health;
+import com.r13a.rinha2025.client.PaymentsClient;
+import com.r13a.rinha2025.entity.Health;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;

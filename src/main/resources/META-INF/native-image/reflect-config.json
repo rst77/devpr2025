@@ -4,21 +4,21 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
-  "name":"com.r13a.devpr2025.client.HealthClient$1Status",
+  "name":"com.r13a.rinha2025.client.HealthClient$1Status",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "queryAllDeclaredConstructors":true,
   "methods":[{"name":"<init>","parameterTypes":["boolean","int"] }]
 },
 {
-  "name":"com.r13a.devpr2025.entity.Health",
+  "name":"com.r13a.rinha2025.entity.Health",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "queryAllDeclaredConstructors":true,
   "methods":[{"name":"<init>","parameterTypes":[] }, {"name":"setStatusA","parameterTypes":["boolean"] }, {"name":"setStatusB","parameterTypes":["boolean"] }, {"name":"getMinResponseTimeA","parameterTypes":[] }, {"name":"setMinResponseTimeB","parameterTypes":["int"] }, {"name":"setMinResponseTimeA","parameterTypes":["int"] }, {"name":"getMinResponseTimeB","parameterTypes":[] }, {"name":"isStatusA","parameterTypes":[] }, {"name":"isStatusB","parameterTypes":[] }]
 },
 {
-  "name":"com.r13a.devpr2025.entity.Total",
+  "name":"com.r13a.rinha2025.entity.Total",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "queryAllDeclaredConstructors":true,

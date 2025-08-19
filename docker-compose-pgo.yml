@@ -1,6 +1,6 @@
 x-backend-templates:
   app: &app
-    image: ghcr.io/rst77/app:11
+    image: ghcr.io/rst77/app:20
     networks:
       - payment-processor
       - rinha-net

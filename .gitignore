@@ -15,3 +15,6 @@ out/
 .factorypath
 *.iprof
 *.argfile
+pgo/
+pgo/node01/app
+pgo/node02/app

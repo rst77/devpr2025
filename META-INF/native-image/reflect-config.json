@@ -57,27 +57,27 @@
   "methods":[{"name":"getEmptyRegistry","parameterTypes":[] }]
 },
 {
-  "name":"com.r13a.devpr2025.api.ApiService$Router$1Payment",
+  "name":"com.r13a.rinha2025.api.ApiService$Router$1Payment",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "queryAllDeclaredConstructors":true,
   "methods":[{"name":"<init>","parameterTypes":["java.lang.String","double"] }]
 },
 {
-  "name":"com.r13a.devpr2025.api.ApiService$Router$Report",
+  "name":"com.r13a.rinha2025.api.ApiService$Router$Report",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "methods":[{"name":"getDefault","parameterTypes":[] }, {"name":"getFallback","parameterTypes":[] }]
 },
 {
-  "name":"com.r13a.devpr2025.api.ApiService$Router$Status",
+  "name":"com.r13a.rinha2025.api.ApiService$Router$Status",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "queryAllDeclaredConstructors":true,
   "methods":[{"name":"totalAmout","parameterTypes":[] }, {"name":"totalRequests","parameterTypes":[] }]
 },
 {
-  "name":"com.r13a.devpr2025.client.HealthClient$1Status",
+  "name":"com.r13a.rinha2025.client.HealthClient$1Status",
   "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "queryAllDeclaredConstructors":true,
