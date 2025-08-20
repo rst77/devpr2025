@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
@@ -32,9 +33,19 @@ public class Summary implements HttpHandler {
     private static final ObjectMapper mapa = new ObjectMapper();
 
     public void limpa(Instant to) {
+
         long cap = to.minusSeconds(10).toEpochMilli();
+
+        Instant agora = Instant.now();
+        System.out.println("Antes A: " + Service.resultadoA.size());
         Service.resultadoA.removeIf(e -> e.getRequestedAt() < cap);
+        System.out.println("Depois A: " + Service.resultadoA.size() + " - Tempo: " + Instant.now().minusMillis(agora.toEpochMilli()).toEpochMilli());
+
+        agora = Instant.now();
+        System.out.println("Antes B: " + Service.resultadoB.size());
         Service.resultadoB.removeIf(e -> e.getRequestedAt() < cap);
+        System.out.println("Depois B: " + Service.resultadoB.size() + " - Tempo: " + Instant.now().minusMillis(agora.toEpochMilli()).toEpochMilli());
+
     }
 
     public Total calculate(Instant from, Instant to) throws Exception {
@@ -98,16 +109,30 @@ public class Summary implements HttpHandler {
      */
     public String data(HttpServerExchange exchange) throws Exception {
 
-        String sFrom = exchange.getQueryParameters().get("from").getFirst();
-        String sTo = exchange.getQueryParameters().get("to").getFirst();
 
-        Instant from = (sFrom == null) ? Instant.now() : Instant.parse(sFrom);
-        Instant to = (sTo == null) ? Instant.now() : Instant.parse(sTo);
+        OffsetDateTime sFrom = null;
+        OffsetDateTime sTo = null;
+
+        if (exchange.getQueryParameters().isEmpty()) {
+            logger.warning(">>>---> erro nos dados de captura de dados");
+            System.exit(-1);
+        } else {
+            sFrom = OffsetDateTime.parse(exchange.getQueryParameters().get("from").getFirst());
+            sTo = OffsetDateTime.parse(exchange.getQueryParameters().get("to").getFirst());
+        }            
+
+    
+        Instant from = (sFrom == null) ? Instant.now() : sFrom.toInstant();
+        Instant to = (sTo == null) ? Instant.now() : sTo.toInstant();
 
         Thread.sleep(Duration.ofMillis(Service.SUMM_DELAY));
 
         Total total = calculate(from, to);
         ObjectMapper mapa = new ObjectMapper();
+
+        Thread.ofVirtual().start(() -> {
+                limpa(to);
+        });
 
         return mapa.writeValueAsString(total);
     }
@@ -116,11 +141,21 @@ public class Summary implements HttpHandler {
      * Processa o total geral processado.
      */
     public String process(HttpServerExchange exchange) throws Exception {
-        String sFrom = exchange.getQueryParameters().get("from").getFirst();
-        String sTo = exchange.getQueryParameters().get("to").getFirst();
 
-        Instant from = (sFrom == null) ? Instant.now() : Instant.parse(sFrom);
-        Instant to = (sTo == null) ? Instant.now() : Instant.parse(sTo);
+
+        OffsetDateTime sFrom = null;
+        OffsetDateTime sTo = null;
+
+        if (exchange.getQueryParameters().isEmpty()) {
+            sFrom = OffsetDateTime.now().minusMinutes(5);
+            sTo = OffsetDateTime.now();
+        } else {
+            sFrom = OffsetDateTime.parse(exchange.getQueryParameters().get("from").getFirst());
+            sTo = OffsetDateTime.parse(exchange.getQueryParameters().get("to").getFirst());
+        }            
+
+        Instant from = (sFrom == null) ? Instant.now() : sFrom.toInstant();
+        Instant to = (sTo == null) ? Instant.now() : sTo.toInstant();
 
         NodeClient nc = new NodeClient();
         totalPar = nc.requestSummary(from, to);
@@ -136,6 +171,10 @@ public class Summary implements HttpHandler {
             total.totalFallback += totalPar.totalFallback;
             total.somaFallback += totalPar.somaFallback;
         }
+
+        Thread.ofVirtual().start(() -> {
+                limpa(to);
+        });
 
         return retorna(total, exchange);
     }

@@ -50,6 +50,12 @@ public class PaymentsClient {
         else 
             pd = original;
 
+        if (servico == 3) {
+            Service.processamento.offer(original);
+            return;
+        }
+
+
         ByteBuffer buffer = BUFFER.get().clear();
         buffer.put(REQUESTED_AT_PREFIX);
 
@@ -138,12 +144,13 @@ public class PaymentsClient {
                 processPayment(pd, (byte)2);
             }
                 
-
+            resp = null;
+            requestA = null;
         } catch (HttpTimeoutException ex) {
             processPayment(pd, (byte)2);
         } catch (IOException | InterruptedException ex) {
                 processPayment(pd, (byte)2);
-
+           
         }
     }
 
@@ -169,12 +176,15 @@ public class PaymentsClient {
                     // registro duplicado
             }
             else
-               processPayment(pd, (byte)2);
+               processPayment(pd, (byte)3);
+
+            resp = null;
+            requestB = null;
 
         } catch (HttpTimeoutException ex) {
             // Faz parte.
         } catch (IOException | InterruptedException ex) {
-            processPayment(pd, (byte)2);
+            processPayment(pd, (byte)3);
         }
 
     }

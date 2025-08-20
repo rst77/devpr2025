@@ -4,8 +4,13 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
-
+        {
+            "type": "java",
+            "name": "Service",
+            "request": "launch",
+            "mainClass": "com.r13a.rinha2025.Service",
+            "projectName": "devpr2025"
+        },
         {
             "type": "java",
             "name": "Service",
@@ -16,7 +21,7 @@
                 "NODE_URL": "http://localhost:9990",
                 "PAYMENT_PROCESSOR_DEFAULT": "http://localhost:8001",
                 "PAYMENT_PROCESSOR_FALLBACK": "http://localhost:8002",
-                "NODE_ID" : "node02"
+                "NODE_ID": "node02"
             },
             "projectName": "greeter"
         },

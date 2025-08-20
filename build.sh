@@ -1,6 +1,7 @@
 #!/bin/bash
+set -x
 
-tag="ghcr.io/rst77/app:20"
+tag="ghcr.io/rst77/app:99"
 
 echo $(date +"%Y-%m-%d at %H:%M:%S") - $tag > src/main/resources/version.fingerprint
 
@@ -38,4 +39,6 @@ if [ "$1" == "pgo" ]; then
     docker push     $tag
     docker push $tag
     docker-compose -f docker-compose-pgo.yml up 
+    sudo chown ubuntu:ubuntu /home/ubuntu/dev/rinha-2025/pgo/node01/default.iprof
+    sudo chown ubuntu:ubuntu /home/ubuntu/dev/rinha-2025/pgo/node02/default.iprof
 fi

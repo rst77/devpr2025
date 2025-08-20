@@ -9,4 +9,6 @@ COPY target/app /app
 
 EXPOSE 9999
 
-CMD ["/app/app"]
+CMD ["/usr/bin/time", "-v", "-o", "time.out", "/app/app"]
+
+# , "-XX:MaxRAM=160000000"

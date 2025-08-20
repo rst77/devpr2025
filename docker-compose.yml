@@ -1,6 +1,6 @@
 x-backend-templates:
   app: &app
-    image: ghcr.io/rst77/app:20
+    image: ghcr.io/rst77/app:99
     networks:
       - payment-processor
       - rinha-net
@@ -11,7 +11,7 @@ x-backend-templates:
           memory: "160MB"
 
   app-env: &app-env    
-    PAYMENT_PROCESSORS: "40"
+    PAYMENT_PROCESSORS: 20
     CONN_TO: "60"
     REQ_TO: "15"
     SUMM_DELAY: "1000"

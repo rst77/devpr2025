@@ -20,6 +20,7 @@ import com.r13a.rinha2025.entity.Health;
 import com.r13a.rinha2025.entity.Payment;
 import com.r13a.rinha2025.service.Payments;
 import com.r13a.rinha2025.service.Summary;
+import com.r13a.rinha2025.service.Shutdown;
 import com.r13a.rinha2025.service.UpdateHealth;
 import com.sun.net.httpserver.HttpServer;
 
@@ -30,12 +31,12 @@ public class Service {
 
     private static final Logger logger = Logger.getLogger(Service.class.getName());
 
-    private final static int HTTP_PORT = 9901;
+    private static int HTTP_PORT = 9901;
     private final static int MAX_THREAD = 900;
     public final static int DELETE_CAP = 5;
 
     public static int SUMM_DELAY = 500;
-    public static int PAYMENT_PROCESSORS = 20;
+    public static int PAYMENT_PROCESSORS = 40;
     public static int CONN_TO = 100;
     public static int REQ_TO = 15;
 
@@ -184,7 +185,8 @@ public class Service {
                     .addExactPath("/payments", new Payments())
                     .addExactPath("/payments-summary", new Summary())
                     .addExactPath("/payments-data", new Summary())
-                    .addExactPath("/update-health", new UpdateHealth());
+                    .addExactPath("/update-health", new UpdateHealth())
+                    .addExactPath("/shutdown", new Shutdown());
         }
 
  
@@ -206,6 +208,11 @@ public class Service {
 
         logger.log(Level.INFO, ">>>---> Versao da aplicacao: {0}", content.toString());
         logger.log(Level.INFO, ">>>---> Max Threads: {0}", Service.MAX_THREAD);
+
+        String httpPort = System.getenv("HTTP_PORT");
+        if (httpPort != null) {
+            HTTP_PORT = Integer.parseInt( httpPort );
+        }
         logger.log(Level.INFO, ">>>---> Porta do servidor: {0}", Service.HTTP_PORT);
 
         String nodeId = System.getenv("NODE_ID");
