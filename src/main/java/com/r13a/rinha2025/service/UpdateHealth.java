@@ -23,7 +23,10 @@ public class UpdateHealth implements HttpHandler {
 
                 Health h = mapa.readValue(data, Health.class);
                 PaymentsClient.setStatus(h);
-
+                // System.out.println("Serv A: " + h.isStatusA());
+                // System.out.println("Serv B: " + h.isStatusB());
+                // System.out.println("Min  A: " + h.getMinResponseTimeA());
+                // System.out.println("Min  B: " + h.getMinResponseTimeB());
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

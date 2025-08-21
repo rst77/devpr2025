@@ -32,6 +32,20 @@ public class PaymentsClient {
     private static final ThreadLocal<ByteBuffer> BUFFER = ThreadLocal.withInitial(() -> ByteBuffer.allocate(256));
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME.withZone(ZoneOffset.UTC);
 
+    public enum Acao {
+        NOVO, CHAMA_A, CHAMA_B, REPROCESSA
+    };
+
+    private final HttpClient clientA = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofMillis(Service.CONN_TO - 10))
+            .build();
+
+    private final HttpClient clientB = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofMillis(Service.CONN_TO))
+            .build();
+
+    private byte[] original; // Guarda o registro original recebido.
+
     /**
      * Atualiza os status dos serviços.
      */
@@ -41,20 +55,21 @@ public class PaymentsClient {
         ativoB = cd.isStatusB();
         reqTimeoutB = cd.getMinResponseTimeB();
 
+        if (reqTimeoutA == 0) reqTimeoutA = 1;
+        if (reqTimeoutB == 0) reqTimeoutB = 1;
+
     }
 
-    private byte[] original;
-    public void processPayment(byte[] pd, byte servico) {
-        if (servico == 0)
+    public void processPayment(byte[] pd, Acao servico) {
+        if (servico == Acao.NOVO)
             original = pd;
-        else 
+        else
             pd = original;
 
-        if (servico == 3) {
+        if (servico == Acao.REPROCESSA) {
             Service.processamento.offer(original);
             return;
         }
-
 
         ByteBuffer buffer = BUFFER.get().clear();
         buffer.put(REQUESTED_AT_PREFIX);
@@ -68,13 +83,18 @@ public class PaymentsClient {
 
         byte[] result = new byte[buffer.position()];
         buffer.flip();
-        buffer.get(result);        
+        buffer.get(result);
 
         try {
-            if ((servico < 2 && isAReady()) && (isBReady() && (reqTimeoutA/reqTimeoutB) < 2)) {
+            if (isAReady() && (reqTimeoutA / reqTimeoutB) < 0.5) {
+            // if (((servico == Acao.NOVO || servico == Acao.CHAMA_A) && isAReady()) ||
+            //         (isBReady() && (reqTimeoutA / reqTimeoutB) < 2)) {
                 chamaA(result);
-            } else if (isBReady() ) {
+            } else if (isBReady()) {
                 chamaB(result);
+            }
+            else {
+                processPayment(pd, Acao.REPROCESSA);
             }
 
         } catch (Exception e) {
@@ -83,7 +103,6 @@ public class PaymentsClient {
 
     }
 
-    
     private void addProcessamento(byte[] body, byte servico) {
 
         String dados = new String(body, StandardCharsets.UTF_8);
@@ -94,14 +113,13 @@ public class PaymentsClient {
             try {
                 // String[] data = keyValue.split(":");
                 switch (cont) {
-                    case 0 -> p.setRequestedAt( Instant.parse(keyValue.subSequence(16, keyValue.indexOf("Z") + 1)).toEpochMilli() );
+                    case 0 -> p.setRequestedAt(
+                            Instant.parse(keyValue.subSequence(16, keyValue.indexOf("Z") + 1)).toEpochMilli());
                     case 2 -> p.setAmount(
-                                            Double.parseDouble(
-                                                String.valueOf(
-                                                    keyValue.subSequence(keyValue.indexOf(":") +1, keyValue.indexOf("}"))
-                                                ).trim()
-                                            )
-                                        );
+                            Double.parseDouble(
+                                    String.valueOf(
+                                            keyValue.subSequence(keyValue.indexOf(":") + 1, keyValue.indexOf("}")))
+                                            .trim()));
                 }
                 cont++;
 
@@ -118,15 +136,9 @@ public class PaymentsClient {
 
     }
 
-
-            HttpClient clientA = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofMillis(Service.CONN_TO - 10))
-                    .build();
-                    
     public void chamaA(byte[] pd) {
 
         try {
-
 
             HttpRequest requestA = HttpRequest.newBuilder()
                     .uri(URI.create(Service.urlA + "/payments"))
@@ -138,25 +150,18 @@ public class PaymentsClient {
             HttpResponse<String> resp = clientA.send(requestA, BodyHandlers.ofString());
 
             if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
-                addProcessamento(pd, (byte)1);
+                addProcessamento(pd, (byte) 1);
+            } else {
+                processPayment(pd, Acao.CHAMA_B);
             }
-            else {
-                processPayment(pd, (byte)2);
-            }
-                
+
             resp = null;
             requestA = null;
-        } catch (HttpTimeoutException ex) {
-            processPayment(pd, (byte)2);
         } catch (IOException | InterruptedException ex) {
-                processPayment(pd, (byte)2);
-           
+            processPayment(pd, Acao.CHAMA_B);
         }
     }
 
-            HttpClient clientB = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofMillis(Service.CONN_TO))
-                    .build();
     public void chamaB(byte[] pd) {
         try {
 
@@ -170,21 +175,19 @@ public class PaymentsClient {
             HttpResponse<String> resp = clientB.send(requestB, BodyHandlers.ofString());
 
             if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
-                addProcessamento(pd, (byte)2);
-            }
-            else if (resp.statusCode() == 422) {
-                    // registro duplicado
-            }
-            else
-               processPayment(pd, (byte)3);
+                addProcessamento(pd, (byte) 2);
+            } else if (resp.statusCode() == 422) {
+                // registro duplicado
+            } else
+                processPayment(pd, Acao.REPROCESSA);
 
             resp = null;
             requestB = null;
 
         } catch (HttpTimeoutException ex) {
-            // Faz parte.
+            processPayment(pd, Acao.REPROCESSA);
         } catch (IOException | InterruptedException ex) {
-            processPayment(pd, (byte)3);
+            processPayment(pd, Acao.REPROCESSA);
         }
 
     }
@@ -218,7 +221,7 @@ public class PaymentsClient {
 
     public static boolean isBReady() {
 
-            return true;
+        return true;
 
     }
 

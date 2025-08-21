@@ -7,8 +7,8 @@ x-backend-templates:
     deploy:
       resources: 
         limits:
-          cpus: "0.36"
-          memory: "100MB"
+          cpus: "0.55"
+          memory: "160MB"
 
   app-env: &app-env    
     PAYMENT_PROCESSORS: "30"
@@ -58,17 +58,6 @@ services:
     environment:
           <<: *app-env
           NODE_ID: node02
-
-  node03: 
-    <<: *app
-    container_name: node03
-    volumes:
-      - ./pgo/node03:/app
-    hostname: node03
-    environment:
-          <<: *app-env
-          NODE_ID: node03
-
 
 networks:
   payment-processor:

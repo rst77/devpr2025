@@ -36,15 +36,8 @@ public class Summary implements HttpHandler {
 
         long cap = to.minusSeconds(10).toEpochMilli();
 
-        Instant agora = Instant.now();
-        System.out.println("Antes A: " + Service.resultadoA.size());
         Service.resultadoA.removeIf(e -> e.getRequestedAt() < cap);
-        System.out.println("Depois A: " + Service.resultadoA.size() + " - Tempo: " + Instant.now().minusMillis(agora.toEpochMilli()).toEpochMilli());
-
-        agora = Instant.now();
-        System.out.println("Antes B: " + Service.resultadoB.size());
         Service.resultadoB.removeIf(e -> e.getRequestedAt() < cap);
-        System.out.println("Depois B: " + Service.resultadoB.size() + " - Tempo: " + Instant.now().minusMillis(agora.toEpochMilli()).toEpochMilli());
 
     }
 
@@ -162,8 +155,8 @@ public class Summary implements HttpHandler {
 
         Total total = calculate(from, to);
 
-        logger.log(Level.INFO, "Dados Locais: {0}", mapa.writeValueAsString(total));
-        logger.log(Level.INFO, "Dados Par   : {0}", mapa.writeValueAsString(totalPar));
+        System.out.println("Dados Local: " + mapa.writeValueAsString(total));
+        System.out.println("Dados Par  : " + mapa.writeValueAsString(totalPar));
 
         if (totalPar != null) {
             total.totalDefault += totalPar.totalDefault;

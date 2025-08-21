@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 import com.r13a.rinha2025.client.HealthClient;
 import com.r13a.rinha2025.client.NodeClient;
 import com.r13a.rinha2025.client.PaymentsClient;
+import com.r13a.rinha2025.client.PaymentsClient.Acao;
 import com.r13a.rinha2025.entity.Health;
 import com.r13a.rinha2025.entity.Payment;
 import com.r13a.rinha2025.service.Payments;
@@ -121,7 +122,7 @@ public class Service {
 
                     try {
                         // if (pc.isFullReady())
-                        pc.processPayment(processamento.take(), (byte) 0);
+                        pc.processPayment(processamento.take(), Acao.NOVO);
 
                     } catch (Exception e) {
                         logger.log(Level.WARNING, "Erro no processamento da guarda de pagamento - {0}",

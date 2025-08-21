@@ -70,8 +70,6 @@ public class NodeClient {
                     .GET()
                     .build();
 
-System.out.println("\n\n>>>---> query request: " + request.uri().toString() + "\n\n");
-
             HttpResponse<String> resp = client.send(request, BodyHandlers.ofString());
 
             if (resp.statusCode() == 200) {

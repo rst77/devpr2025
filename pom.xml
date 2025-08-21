@@ -44,6 +44,7 @@
               <imageName>app-ins</imageName>
               <buildArgs>
                   <buildArg>--pgo-instrument</buildArg>
+                  <buildArg>--gc=G1</buildArg>
               </buildArgs>
               <mainClass>com.r13a.rinha2025.Service</mainClass>
             </configuration>
@@ -104,6 +105,7 @@
                   <buildArg>-O3</buildArg>
                   <buildArg>-H:TuneInlinerExploration=11</buildArg>
                   <buildArg>--pgo=./pgo/node01/default.iprof</buildArg>
+                  <buildArg>--gc=G1</buildArg>
               </buildArgs>
               <mainClass>com.r13a.rinha2025.Service</mainClass>
             </configuration>

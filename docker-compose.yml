@@ -11,7 +11,7 @@ x-backend-templates:
           memory: "160MB"
 
   app-env: &app-env    
-    PAYMENT_PROCESSORS: 20
+    PAYMENT_PROCESSORS: "30"
     CONN_TO: "60"
     REQ_TO: "15"
     SUMM_DELAY: "1000"

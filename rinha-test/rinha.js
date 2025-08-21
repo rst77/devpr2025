@@ -18,30 +18,34 @@ import {
 // https://mikemcl.github.io/big.js/
 import Big from "https://cdn.jsdelivr.net/npm/big.js@7.0.1/big.min.js";
 
-const MAX_REQUESTS = __ENV.MAX_REQUESTS ?? 603;
-
+const MAX_REQUESTS = __ENV.MAX_REQUESTS ?? 500;
 
 export const options = {
   summaryTrendStats: [
     "p(99)",
     "count",
   ],
+  thresholds: {
+    //http_req_failed: [{ threshold: "rate < 0.01", abortOnFail: false }],
+    //payments_inconsistency: ["count == 0"]
+    //http_req_duration: ['p(99) < 50'],
+    //payments_count: ['count > 3500'],
+  },
   scenarios: {
     payments: {
       exec: "payments",
       executor: "ramping-vus",
       startVUs: 1,
       gracefulRampDown: "0s",
-      stages: [{ target: MAX_REQUESTS, duration: "300s" }],
+      stages: [{ target: MAX_REQUESTS, duration: "60s" }],
     },
     payments_consistency: {
       exec: "checkPaymentsConsistency",
       executor: "constant-vus",
-      duration: "300s",
+      //startTime: "5s",
+      duration: "60s",
       vus: "1",
     },
-    // Bom, vamos começar suave, né?
-    // Aquecimento e tal pra ninguém se lesionar no começo.
     stage_00: {
       exec: "define_stage",
       startTime: "1s",
@@ -55,43 +59,35 @@ export const options = {
         fallbackFailure: "false",
       },
     },
-    // Só vai usar default e foda-se mesmo?
-    // Escolhas...
     stage_01: {
       exec: "define_stage",
-      startTime: "30s",
+      startTime: "10s",
       executor: "constant-vus",
       vus: 1,
       duration: "1s",
       tags: {
-        defaultDelay: "1000",
+        defaultDelay: "100",
         defaultFailure: "false",
         fallbackDelay: "0",
         fallbackFailure: "false",
       },
     },
-    // Pode ser que escolher só o defaul não seja uma 
-    // ideia tão ruim assim...
     stage_02: {
       exec: "define_stage",
-      startTime: "60s",
+      startTime: "20s",
       executor: "constant-vus",
       vus: 1,
       duration: "1s",
       tags: {
-        defaultDelay: "500",
-        defaultFailure: "false",
+        defaultDelay: "100",
+        defaultFailure: "true",
         fallbackDelay: "0",
         fallbackFailure: "false",
       },
     },
-    // Ás vezes vale pagar mais caro por um serviço melhor, sabe?
-    // NPS, satisfação do cliente, etc.
-    // Dizem que recuperar um cliente é muito mais difícil do que 
-    // conquistar um novo.
     stage_03: {
       exec: "define_stage",
-      startTime: "90s",
+      startTime: "30s",
       executor: "constant-vus",
       vus: 1,
       duration: "1s",
@@ -99,100 +95,37 @@ export const options = {
         defaultDelay: "2000",
         defaultFailure: "true",
         fallbackDelay: "1000",
-        fallbackFailure: "false",
+        fallbackFailure: "true",
       },
     },
-    // Sua estratégia é só usar o defaul mesmo?
-    // Tomar que não :pray:
     stage_04: {
       exec: "define_stage",
-      startTime: "120s",
+      startTime: "40s",
       executor: "constant-vus",
       vus: 1,
       duration: "1s",
       tags: {
-        defaultDelay: "5000",
-        defaultFailure: "true",
-        fallbackDelay: "5",
+        defaultDelay: "20",
+        defaultFailure: "false",
+        fallbackDelay: "20",
         fallbackFailure: "false",
       },
     },
-    // Vai que agora tá bom e barato.
-    // Inclusive, o mais caro tá até pior, né?
     stage_05: {
       exec: "define_stage",
-      startTime: "150s",
+      startTime: "50s",
       executor: "constant-vus",
       vus: 1,
       duration: "1s",
       tags: {
         defaultDelay: "0",
         defaultFailure: "false",
-        fallbackDelay: "5",
-        fallbackFailure: "true",
-      },
-    },
-    // É... sei lá... só vai.
-    stage_06: {
-      exec: "define_stage",
-      startTime: "180s",
-      executor: "constant-vus",
-      vus: 1,
-      duration: "1s",
-      tags: {
-        defaultDelay: "100",
-        defaultFailure: "false",
-        fallbackDelay: "5",
-        fallbackFailure: "false",
-      },
-    },
-    // Tá acabando... espero que você esteja bem, backend.
-    // Até porque o default que é mais barato, não tá legal de novo.
-    stage_07: {
-      exec: "define_stage",
-      startTime: "210s",
-      executor: "constant-vus",
-      vus: 1,
-      duration: "1s",
-      tags: {
-        defaultDelay: "50",
-        defaultFailure: "false",
-        fallbackDelay: "0",
-        fallbackFailure: "false",
-      },
-    },
-    // Reta quase final... escolhas boas geram bons frutos, né?
-    stage_08: {
-      exec: "define_stage",
-      startTime: "240s",
-      executor: "constant-vus",
-      vus: 1,
-      duration: "1s",
-      tags: {
-        defaultDelay: "103",
-        defaultFailure: "false",
-        fallbackDelay: "10",
-        fallbackFailure: "false",
-      },
-    },
-    // Reta final... é aquilo, né? Minha mãe me ensinou
-    // que economia na base da porcaria nunca vale a pena.
-    stage_09: {
-      exec: "define_stage",
-      startTime: "270s",
-      executor: "constant-vus",
-      vus: 1,
-      duration: "1s",
-      tags: {
-        defaultDelay: "2000",
-        defaultFailure: "false",
-        fallbackDelay: "0",
+        fallbackDelay: "5000",
         fallbackFailure: "false",
       },
     },
   },
 };
-
 
 const transactionsSuccessCounter = new Counter("transactions_success");
 const transactionsFailureCounter = new Counter("transactions_failure");
