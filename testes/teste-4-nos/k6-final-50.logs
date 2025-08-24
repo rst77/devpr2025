@@ -1,0 +1,4 @@
+time="2025-08-24T14:09:03Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T14:09:03Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 165 vs 328" source=console
+time="2025-08-24T14:09:03Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 0 vs 0" source=console
+time="2025-08-24T14:11:25Z" level=info msg="summaries from 2025-08-24T14:05:25.780Z to 2025-08-24T14:11:25.780Z" source=console
