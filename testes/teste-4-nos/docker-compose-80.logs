@@ -69,3 +69,8 @@ node02       | Dados Par 1: [{"totalDefault":229,"somaDefault":4591.45000000002,
 node02       | Dados Par 4: [{"totalDefault":229,"somaDefault":4591.45000000002,"totalFallback":0,"somaFallback":0.0},null,null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":783,"somaFallback":15699.14999999978}]
 [Knode01 exited with code 137
 [Knode02 exited with code 137
+[Knode03 exited with code 137
+node04       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0}
+node04       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":654,"somaFallback":13112.699999999873}
+node04       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":793,"somaFallback":15899.649999999772}
+[Krinha-nginx exited with code 0
