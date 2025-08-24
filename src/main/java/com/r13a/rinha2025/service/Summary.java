@@ -118,8 +118,6 @@ public class Summary implements HttpHandler {
         Instant from = (sFrom == null) ? Instant.now() : sFrom.toInstant();
         Instant to = (sTo == null) ? Instant.now() : sTo.toInstant();
 
-        Thread.sleep(Duration.ofMillis(Service.SUMM_DELAY));
-
         Total total = calculate(from, to);
         ObjectMapper mapa = new ObjectMapper();
 
@@ -149,20 +147,25 @@ public class Summary implements HttpHandler {
 
         Instant from = (sFrom == null) ? Instant.now() : sFrom.toInstant();
         Instant to = (sTo == null) ? Instant.now() : sTo.toInstant();
+        
+        Thread.sleep(Duration.ofMillis(Service.SUMM_DELAY));
 
         NodeClient nc = new NodeClient();
-        totalPar = nc.requestSummary(from, to);
+        Total[] totalPar = nc.requestSummary(from, to);
 
         Total total = calculate(from, to);
 
         System.out.println("Dados Local: " + mapa.writeValueAsString(total));
-        System.out.println("Dados Par  : " + mapa.writeValueAsString(totalPar));
+        for (int i = 0; i < totalPar.length; i++) {
 
-        if (totalPar != null) {
-            total.totalDefault += totalPar.totalDefault;
-            total.somaDefault += totalPar.somaDefault;
-            total.totalFallback += totalPar.totalFallback;
-            total.somaFallback += totalPar.somaFallback;
+            if (totalPar[i] != null) {
+                System.out.println("Dados Par "+(i+1)+": " + mapa.writeValueAsString(totalPar));
+
+                total.totalDefault += totalPar[i].totalDefault;
+                total.somaDefault += totalPar[i].somaDefault;
+                total.totalFallback += totalPar[i].totalFallback;
+                total.somaFallback += totalPar[i].somaFallback;
+            }
         }
 
         Thread.ofVirtual().start(() -> {

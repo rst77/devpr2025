@@ -32,16 +32,16 @@ public class Service {
 
     private static final Logger logger = Logger.getLogger(Service.class.getName());
 
-    private static int HTTP_PORT = 9901;
+    public static int HTTP_PORT = 9901;
     private final static int MAX_THREAD = 900;
     public final static int DELETE_CAP = 5;
 
-    public static int SUMM_DELAY = 500;
+    public static int SUMM_DELAY = 100;
     public static int PAYMENT_PROCESSORS = 40;
     public static int CONN_TO = 100;
     public static int REQ_TO = 15;
 
-    public static String NODE_ID;
+    public static int NODE_ID;
 
     public final static LinkedTransferQueue<byte[]> processamento = new LinkedTransferQueue<>();
     public final static List<ArrayBlockingQueue<byte[]>> dist = new ArrayList<>();
@@ -52,8 +52,8 @@ public class Service {
     public static String urlA = null;
     public static String urlB = null;
 
-    public static String pairURL;
-    public static String nodeURL;
+    public static int PAIR_NBR;
+    public static String NODE_URL;
 
     private HttpServer serverHttp;
 
@@ -80,7 +80,7 @@ public class Service {
      */
     public void startMonitoring() {
 
-        if (!NODE_ID.equals("node01"))
+        if (NODE_ID != 1)
             return;
 
         logger.info(">>>---> iniciando guarda de health.");
@@ -216,15 +216,6 @@ public class Service {
         }
         logger.log(Level.INFO, ">>>---> Porta do servidor: {0}", Service.HTTP_PORT);
 
-        String nodeId = System.getenv("NODE_ID");
-        if (nodeId != null) {
-            NODE_ID = nodeId;
-        } else {
-            NODE_ID = "node01";
-            logger.log(Level.SEVERE, "Nao informado o id do NO");
-        }
-        logger.log(Level.INFO, ">>>---> NODE_ID: {0}", NODE_ID);
-
         String defaultURL = System.getenv("PAYMENT_PROCESSOR_DEFAULT");
         if (defaultURL != null) {
             Service.urlA = defaultURL;
@@ -241,21 +232,29 @@ public class Service {
         }
         logger.log(Level.INFO, ">>>---> Health URL B: {0}", Service.urlB);
 
-        String pair = System.getenv("PAIR_URL");
+        String pair = System.getenv("PAIR_NBR");
         if (pair != null) {
-            Service.pairURL = pair;
+            Service.PAIR_NBR = Integer.parseInt(pair);
         } else {
-            pairURL = "http://" + (Service.NODE_ID.equals("node02") ? "node01" : "node02") + ":" + Service.HTTP_PORT;
+            PAIR_NBR = 1;
         }
-        logger.log(java.util.logging.Level.INFO, ">>>---> pairURL: {0}", Service.pairURL);
+        logger.log(java.util.logging.Level.INFO, ">>>---> PAIR_NBR: {0}", Service.PAIR_NBR);
+
+        String nodeId = System.getenv("NODE_ID");
+        if (nodeId != null) {
+            NODE_ID = Integer.parseInt(nodeId);
+        } else {
+            NODE_ID = 1;
+        }
+        logger.log(Level.INFO, ">>>---> NODE_ID: {0}", NODE_ID);
 
         String node = System.getenv("NODE_URL");
         if (node != null) {
-            Service.nodeURL = node;
+            Service.NODE_URL = node + Service.HTTP_PORT;
         } else {
-            Service.nodeURL = "http://node02:" + Service.HTTP_PORT;
+            Service.NODE_URL = "http://node0" ;
         }
-        logger.log(java.util.logging.Level.INFO, ">>>---> nodeURL: {0}", Service.nodeURL);
+        logger.log(java.util.logging.Level.INFO, ">>>---> NODE_URL: {0}", Service.NODE_URL);
 
         String conn_to = System.getenv("CONN_TO");
         if (conn_to != null) {

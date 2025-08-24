@@ -1,0 +1,96 @@
+Attaching to node01, node02, node03, rinha-nginx
+rinha-nginx  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+rinha-nginx  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+rinha-nginx  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+rinha-nginx  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+rinha-nginx  | 10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+rinha-nginx  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+rinha-nginx  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+rinha-nginx  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+rinha-nginx  | /docker-entrypoint.sh: Configuration complete; ready for start up
+node02       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0}
+node02       | Dados Par 1: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0}]
+node02       | Dados Par 3: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0}]
+node01       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":33,"somaFallback":661.6499999999999}
+node01       | Dados Par 2: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":32,"somaFallback":641.5999999999999},{"totalDefault":0,"somaDefault":0.0,"totalFallback":33,"somaFallback":661.6499999999999}]
+node01       | Dados Par 3: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":32,"somaFallback":641.5999999999999},{"totalDefault":0,"somaDefault":0.0,"totalFallback":33,"somaFallback":661.6499999999999}]
+node03       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":122,"somaFallback":2446.1000000000004}
+node03       | Dados Par 1: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":121,"somaFallback":2426.05},{"totalDefault":0,"somaDefault":0.0,"totalFallback":123,"somaFallback":2466.1500000000005},null]
+node03       | Dados Par 2: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":121,"somaFallback":2426.05},{"totalDefault":0,"somaDefault":0.0,"totalFallback":123,"somaFallback":2466.1500000000005},null]
+node02       | Dados Local: {"totalDefault":9,"somaDefault":180.45000000000002,"totalFallback":207,"somaFallback":4150.350000000016}
+node02       | Dados Par 1: [{"totalDefault":9,"somaDefault":180.45000000000002,"totalFallback":206,"somaFallback":4130.300000000016},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":214,"somaFallback":4290.700000000017}]
+node02       | Dados Par 3: [{"totalDefault":9,"somaDefault":180.45000000000002,"totalFallback":206,"somaFallback":4130.300000000016},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":214,"somaFallback":4290.700000000017}]
+node02       | Dados Local: {"totalDefault":271,"somaDefault":5433.5500000000275,"totalFallback":31,"somaFallback":621.55}
+node02       | Dados Par 1: [{"totalDefault":271,"somaDefault":5433.5500000000275,"totalFallback":31,"somaFallback":621.55},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":308,"somaFallback":6175.400000000034}]
+node02       | Dados Par 3: [{"totalDefault":271,"somaDefault":5433.5500000000275,"totalFallback":31,"somaFallback":621.55},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":308,"somaFallback":6175.400000000034}]
+node02       | Dados Local: {"totalDefault":384,"somaDefault":7699.200000000048,"totalFallback":0,"somaFallback":0.0}
+node02       | Dados Par 1: [{"totalDefault":385,"somaDefault":7719.250000000048,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":401,"somaFallback":8040.050000000051}]
+node02       | Dados Par 3: [{"totalDefault":385,"somaDefault":7719.250000000048,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":401,"somaFallback":8040.050000000051}]
+node02       | Dados Local: {"totalDefault":467,"somaDefault":9363.35000000001,"totalFallback":0,"somaFallback":0.0}
+node02       | Dados Par 1: [{"totalDefault":469,"somaDefault":9403.450000000008,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":494,"somaFallback":9904.69999999999}]
+node02       | Dados Par 3: [{"totalDefault":469,"somaDefault":9403.450000000008,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":494,"somaFallback":9904.69999999999}]
+node03       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":588,"somaFallback":11789.399999999921}
+node03       | Dados Par 1: [{"totalDefault":576,"somaDefault":11548.79999999993,"totalFallback":0,"somaFallback":0.0},{"totalDefault":575,"somaDefault":11528.74999999993,"totalFallback":0,"somaFallback":0.0},null]
+node03       | Dados Par 2: [{"totalDefault":576,"somaDefault":11548.79999999993,"totalFallback":0,"somaFallback":0.0},{"totalDefault":575,"somaDefault":11528.74999999993,"totalFallback":0,"somaFallback":0.0},null]
+node03       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":680,"somaFallback":13633.999999999854}
+node03       | Dados Par 1: [{"totalDefault":662,"somaDefault":13273.099999999868,"totalFallback":0,"somaFallback":0.0},{"totalDefault":662,"somaDefault":13273.099999999868,"totalFallback":0,"somaFallback":0.0},null]
+node03       | Dados Par 2: [{"totalDefault":662,"somaDefault":13273.099999999868,"totalFallback":0,"somaFallback":0.0},{"totalDefault":662,"somaDefault":13273.099999999868,"totalFallback":0,"somaFallback":0.0},null]
+node02       | Dados Local: {"totalDefault":303,"somaDefault":6075.150000000033,"totalFallback":0,"somaFallback":0.0}
+node02       | Dados Par 1: [{"totalDefault":302,"somaDefault":6055.100000000033,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":646,"somaFallback":12952.29999999988}]
+node02       | Dados Par 3: [{"totalDefault":302,"somaDefault":6055.100000000033,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":646,"somaFallback":12952.29999999988}]
+node01       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0}
+node01       | Dados Par 2: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":561,"somaFallback":11248.049999999941}]
+node01       | Dados Par 3: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":561,"somaFallback":11248.049999999941}]
+node01       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0}
+node01       | Dados Par 2: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":566,"somaFallback":11348.299999999937}]
+node01       | Dados Par 3: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":566,"somaFallback":11348.299999999937}]
+node02       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0}
+node02       | Dados Par 1: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":948,"somaFallback":19007.39999999966}]
+node02       | Dados Par 3: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":948,"somaFallback":19007.39999999966}]
+node03       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":1148,"somaFallback":23017.399999999514}
+node03       | Dados Par 1: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},null]
+node03       | Dados Par 2: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},null]
+node02       | Dados Local: {"totalDefault":242,"somaDefault":4852.100000000022,"totalFallback":0,"somaFallback":0.0}
+node02       | Dados Par 1: [{"totalDefault":242,"somaDefault":4852.100000000022,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":1037,"somaFallback":20791.849999999595}]
+node02       | Dados Par 3: [{"totalDefault":242,"somaDefault":4852.100000000022,"totalFallback":0,"somaFallback":0.0},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":1037,"somaFallback":20791.849999999595}]
+node01       | Dados Local: {"totalDefault":187,"somaDefault":3749.350000000012,"totalFallback":0,"somaFallback":0.0}
+node01       | Dados Par 3: [null,null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0}]
+node03       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0}
+node03       | Dados Par 1: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},null]
+node03       | Dados Par 2: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0},null]
+node02       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":686,"somaFallback":13754.29999999985}
+node02       | Dados Par 1: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":692,"somaFallback":13874.599999999846},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":683,"somaFallback":13694.149999999852}]
+node02       | Dados Par 3: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":692,"somaFallback":13874.599999999846},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":683,"somaFallback":13694.149999999852}]
+node02       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":1613,"somaFallback":32340.649999999176}
+node02       | Dados Par 1: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":1616,"somaFallback":32400.799999999173},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":1615,"somaFallback":32380.749999999174}]
+node02       | Dados Par 3: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":1616,"somaFallback":32400.799999999173},null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":1615,"somaFallback":32380.749999999174}]
+node01       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":1709,"somaFallback":34265.44999999938}
+node01       | Dados Par 2: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":1708,"somaFallback":34245.399999999376},{"totalDefault":0,"somaDefault":0.0,"totalFallback":1709,"somaFallback":34265.44999999938}]
+node01       | Dados Par 3: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":1708,"somaFallback":34245.399999999376},{"totalDefault":0,"somaDefault":0.0,"totalFallback":1709,"somaFallback":34265.44999999938}]
+node03       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":1804,"somaFallback":36170.199999999655}
+node03       | Dados Par 1: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":1803,"somaFallback":36150.14999999965},{"totalDefault":0,"somaDefault":0.0,"totalFallback":1803,"somaFallback":36150.14999999965},null]
+node03       | Dados Par 2: [{"totalDefault":0,"somaDefault":0.0,"totalFallback":1803,"somaFallback":36150.14999999965},{"totalDefault":0,"somaDefault":0.0,"totalFallback":1803,"somaFallback":36150.14999999965},null]
+node01       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":1898,"somaFallback":38054.89999999993}
+node01       | Dados Par 2: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":1898,"somaFallback":38054.89999999993},{"totalDefault":0,"somaDefault":0.0,"totalFallback":1898,"somaFallback":38054.89999999993}]
+node01       | Dados Par 3: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":1898,"somaFallback":38054.89999999993},{"totalDefault":0,"somaDefault":0.0,"totalFallback":1898,"somaFallback":38054.89999999993}]
+node01       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":1994,"somaFallback":39979.70000000021}
+node01       | Dados Par 2: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":1995,"somaFallback":39999.75000000021},{"totalDefault":0,"somaDefault":0.0,"totalFallback":1996,"somaFallback":40019.800000000214}]
+node01       | Dados Par 3: [null,{"totalDefault":0,"somaDefault":0.0,"totalFallback":1995,"somaFallback":39999.75000000021},{"totalDefault":0,"somaDefault":0.0,"totalFallback":1996,"somaFallback":40019.800000000214}]
+node01       | Dados Local: {"totalDefault":1329,"somaDefault":26646.449999999382,"totalFallback":741,"somaFallback":14857.04999999981}
+node01       | Dados Par 2: [null,{"totalDefault":1326,"somaDefault":26586.299999999384,"totalFallback":746,"somaFallback":14957.299999999806},{"totalDefault":0,"somaDefault":0.0,"totalFallback":2088,"somaFallback":41864.40000000048}]
+node01       | Dados Par 3: [null,{"totalDefault":1326,"somaDefault":26586.299999999384,"totalFallback":746,"somaFallback":14957.299999999806},{"totalDefault":0,"somaDefault":0.0,"totalFallback":2088,"somaFallback":41864.40000000048}]
+node01       | Dados Local: {"totalDefault":2150,"somaDefault":43107.50000000066,"totalFallback":0,"somaFallback":0.0}
+node01       | Dados Par 2: [null,{"totalDefault":2151,"somaDefault":43127.550000000665,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":2180,"somaFallback":43709.00000000075}]
+node01       | Dados Par 3: [null,{"totalDefault":2151,"somaDefault":43127.550000000665,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":2180,"somaFallback":43709.00000000075}]
+node03       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":2272,"somaFallback":45553.60000000102}
+node03       | Dados Par 1: [{"totalDefault":1711,"somaDefault":34305.549999999384,"totalFallback":0,"somaFallback":0.0},{"totalDefault":1711,"somaDefault":34305.549999999384,"totalFallback":0,"somaFallback":0.0},null]
+node03       | Dados Par 2: [{"totalDefault":1711,"somaDefault":34305.549999999384,"totalFallback":0,"somaFallback":0.0},{"totalDefault":1711,"somaDefault":34305.549999999384,"totalFallback":0,"somaFallback":0.0},null]
+node01       | Dados Local: {"totalDefault":315,"somaDefault":6315.7500000000355,"totalFallback":0,"somaFallback":0.0}
+node01       | Dados Par 2: [null,{"totalDefault":315,"somaDefault":6315.7500000000355,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":2363,"somaFallback":47378.15000000128}]
+node01       | Dados Par 3: [null,{"totalDefault":315,"somaDefault":6315.7500000000355,"totalFallback":0,"somaFallback":0.0},{"totalDefault":0,"somaDefault":0.0,"totalFallback":2363,"somaFallback":47378.15000000128}]
+node03       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":2461,"somaFallback":49343.05000000157}
+node03       | Dados Par 1: [{"totalDefault":270,"somaDefault":5413.500000000027,"totalFallback":0,"somaFallback":0.0},{"totalDefault":270,"somaDefault":5413.500000000027,"totalFallback":0,"somaFallback":0.0},null]
+node03       | Dados Par 2: [{"totalDefault":270,"somaDefault":5413.500000000027,"totalFallback":0,"somaFallback":0.0},{"totalDefault":270,"somaDefault":5413.500000000027,"totalFallback":0,"somaFallback":0.0},null]
+[Krinha-nginx exited with code 0
+[Knode03 exited with code 137
+[Knode01 exited with code 137

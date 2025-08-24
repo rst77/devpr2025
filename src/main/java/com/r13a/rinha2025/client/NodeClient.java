@@ -20,7 +20,6 @@ import com.r13a.rinha2025.entity.Total;
 public class NodeClient {
     private static final Logger logger = Logger.getLogger(NodeClient.class.getName());
 
-
     private static final ObjectMapper mapa = new ObjectMapper();
 
     public void processHealth(Health h) {
@@ -32,61 +31,77 @@ public class NodeClient {
             HttpClient client = HttpClient.newBuilder()
                     .build();
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Service.nodeURL + "/update-health"))
-                    .header("Content-Type", "application/json")
-                    .POST(body)
-                    .build();
+            for (int i = 0; i < Service.PAIR_NBR; i++) {
 
-            HttpResponse<String> resp = client.send(request, BodyHandlers.ofString());
+                if ((i + 1) == Service.NODE_ID)
+                    continue;
 
-            if (resp.statusCode() != 200)
-                logger.log(java.util.logging.Level.WARNING,
-                        ">>>---> Problemas na atualizacao do Health - Codigo retorno: {0}", resp.statusCode());
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(
+                                Service.NODE_URL + (i + 1) + ":" + Service.HTTP_PORT + "/update-health"))
+                        .timeout(Duration.ofMillis(4000))
+                        .header("Content-Type", "application/json")
+                        .POST(body)
+                        .build();
 
-            client.close();
+                HttpResponse<String> resp = client.send(request, BodyHandlers.ofString());
+
+                if (resp.statusCode() != 200)
+                    logger.log(java.util.logging.Level.WARNING,
+                            ">>>---> Problemas na atualizacao do Health - Par: {0} - Codigo retorno: {1}",
+                            new Object[] { (i + 1), resp.statusCode() });
+
+                client.close();
+            }
         } catch (IOException | InterruptedException ex) {
             // So vai
         }
     }
 
-    public Total requestSummary(Instant from, Instant to) {
+    public Total[] requestSummary(Instant from, Instant to) {
+        Total[] retorno = new Total[Service.PAIR_NBR];
 
-        try {
+        String query = "/payments-data?from={0}&to={1}";
 
-            String query = "/payments-data?from={0}&to={1}";
+        Object[] parameters = { from.toString(), to.toString() };
+        String queryString = MessageFormat.format(query, parameters);
 
-            Object[] parameters = { from.toString(), to.toString() };
-            String queryString = MessageFormat.format(query, parameters);
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofMillis(10))
+                .build();
 
-            HttpClient client = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofMillis(10))
-                    .build();
+        for (int i = 0; i < Service.PAIR_NBR; i++) {
+            try {
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Service.pairURL + queryString))
-                    .timeout(Duration.ofMillis(4000))
-                    .header("Content-Type", "application/json")
-                    .GET()
-                    .build();
+                if ((i + 1) == Service.NODE_ID)
+                    continue;
 
-            HttpResponse<String> resp = client.send(request, BodyHandlers.ofString());
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Service.NODE_URL + (i + 1) + ":" + Service.HTTP_PORT + queryString))
+                        .timeout(Duration.ofMillis(4000))
+                        .header("Content-Type", "application/json")
+                        .GET()
+                        .build();
 
-            if (resp.statusCode() == 200) {
+                HttpResponse<String> resp = client.send(request, BodyHandlers.ofString());
 
-                ObjectMapper mapa = new ObjectMapper();
-                Total total = mapa.readValue(resp.body(), Total.class);
-                return total;
+                if (resp.statusCode() == 200) {
 
-            } else {
-                // Segue a vida.
+                    ObjectMapper mapa = new ObjectMapper();
+                    Total total = mapa.readValue(resp.body(), Total.class);
+                    retorno[i] = total;
+
+                } else {
+                    // Segue a vida.
+                }
+            } catch (IOException | InterruptedException ex) {
+                // Bola em jogo.
+
             }
-            client.close();
-        } catch (IOException | InterruptedException ex) {
-            // Bola em jogo.
         }
+        client.close();
 
-        return null;
+        return retorno;
     }
 
 }

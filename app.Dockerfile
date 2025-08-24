@@ -8,6 +8,9 @@ RUN mkdir -p /app/pgo
 COPY target/app /app/app
 EXPOSE 9999
 
-CMD ["/usr/bin/time", "-v", "-o", "time.out", "/app/app","-Xmx140m", "-Xms50m","-Xmn20m","-XX:MaxRAM=140000000","-XX:MaxDirectMemorySize=140M"]
+CMD ["/app/app", "-Xmx80m", "-XX:MaxRAM=80m","-XX:MaxDirectMemorySize=80m"]
+
+#"-Xms20m","-Xmn1m",
+#"/usr/bin/time", "-v", "-o", "time.out",
 
 #,"-XX:+PrintGC","-XX:+VerboseGC"

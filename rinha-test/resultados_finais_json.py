@@ -21,7 +21,7 @@ for (dirpath, dirnames, filenames) in walk("../participantes/"):
                     })
 
             final_result_file = join(dirpath, "final-results.json")
-            errors_log_file = join(dirpath, "error.logs")
+            errors_log_file = join(dirpath, "error-final.logs")
             entry.update({"erro_na_execucao": isfile(errors_log_file)})
 
             if (isfile(final_result_file)):

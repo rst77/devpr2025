@@ -6,24 +6,10 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Service",
-            "request": "launch",
-            "mainClass": "com.r13a.rinha2025.Service",
-            "projectName": "devpr2025"
-        },
-        {
-            "type": "java",
-            "name": "Service",
-            "request": "launch",
-            "mainClass": "com.r13a.rinha2025.Service",
-            "env": {
-                "PAIR_URL": "http://localhost:9990",
-                "NODE_URL": "http://localhost:9990",
-                "PAYMENT_PROCESSOR_DEFAULT": "http://localhost:8001",
-                "PAYMENT_PROCESSOR_FALLBACK": "http://localhost:8002",
-                "NODE_ID": "node02"
-            },
-            "projectName": "greeter"
+            "name": "Attach",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": "5001"
         },
         {
             "type": "java",
@@ -33,12 +19,10 @@
         },
         {
             "type": "java",
-            "name": "Current File - Run Continuous",
+            "name": "Service",
             "request": "launch",
-            "mainClass": "${file}",
-            "env": {
-                "JDT_LAUNCHWRAP_MICRONAUT_CONTINUOUS": "true"
-            }
+            "mainClass": "com.r13a.rinha2025.Service",
+            "projectName": "devpr2025"
         }
     ]
 }

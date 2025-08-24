@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 # imagem do test
 tag="ghcr.io/rst77/app:20"

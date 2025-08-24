@@ -6,4 +6,4 @@ COPY target/devpr2025-0.1-jar-with-dependencies.jar /app
 
 EXPOSE 9999
 
-ENTRYPOINT ["java", "-jar", "devpr2025-0.1-jar-with-dependencies.jar", "--gc=serial"]
+ENTRYPOINT ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "-jar", "devpr2025-0.1-jar-with-dependencies.jar", "--gc=serial"]
