@@ -18,3 +18,4 @@ out/
 pgo/
 pgo/node01/app
 pgo/node02/app
+testes/nohup.out
