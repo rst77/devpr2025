@@ -70,3 +70,4 @@ node02       | Dados Par 4: [{"totalDefault":0,"somaDefault":0.0,"totalFallback"
 node03       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":785,"somaFallback":15739.249999999778}
 node03       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":0,"somaFallback":0.0}
 node03       | Dados Local: {"totalDefault":0,"somaDefault":0.0,"totalFallback":625,"somaFallback":12531.249999999894}
+[Krinha-nginx exited with code 0
