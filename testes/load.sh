@@ -12,7 +12,7 @@ MAX_REQUESTS=603
 
 mkdir $diretorio
 
-while [ $workers -le 10 ]; do
+while [ $workers -le 100 ]; do
 
     echo PAYMENT_PROCESSORS: \"${workers}\" > env.envfile
     docker compose -f ../../rinha-de-backend-2025/payment-processor/docker-compose.yml down
@@ -25,7 +25,7 @@ while [ $workers -le 10 ]; do
 
     mv final-results.json $diretorio/t-${workers}-final-results.json
 
-    if [ $workers -le 10 ]; then    
+    if [ $workers -le 9 ]; then    
         workers=$((workers+1))
     else
         workers=$((workers+5))

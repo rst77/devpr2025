@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-08-24T13:27:11.331Z",
+  "timestamp": "2025-08-24T16:06:26.886Z",
   "participante": "anonymous",
-  "total_liquido": 1133569.40838,
-  "total_bruto": 1063251.5,
-  "total_taxas": 102599.459,
+  "total_liquido": 1136698.07454,
+  "total_bruto": 1066118.65,
+  "total_taxas": 102815.197,
   "descricao": "'total_liquido' é sua pontuação final. Equivale ao seu lucro. Fórmula: total_liquido + (total_liquido * p99.bonus) - (total_liquido * multa.porcentagem)",
   "p99": {
-    "valor": "2.15ms",
+    "valor": "1.78ms",
     "bonus": "18%",
     "max_requests": "603",
     "descricao": "Fórmula para o bônus: max((11 - p99.valor) * 0.02, 0)"
@@ -24,26 +24,26 @@
     "descricao": "Se 'lag' for negativo, significa que seu backend registrou mais pagamentos do que solicitado, automaticamente desclassificando sua submissão!"
   },
   "lag": {
-    "num_pagamentos_total": 53030,
-    "num_pagamentos_solicitados": 90558,
-    "lag": 37528,
+    "num_pagamentos_total": 53173,
+    "num_pagamentos_solicitados": 90572,
+    "lag": 37399,
     "descricao": "Lag é a diferença entre a quantidade de solicitações de pagamentos e o que foi realmente computado pelo backend. Mostra a perda de pagamentos possivelmente por estarem enfileirados."
   },
   "pagamentos_solicitados": {
-    "qtd_sucesso": 90558,
+    "qtd_sucesso": 90572,
     "qtd_falha": 0,
     "descricao": "'qtd_sucesso' foram requests bem sucedidos para 'POST /payments' e 'qtd_falha' os requests com erro."
   },
   "pagamentos_realizados_default": {
-    "total_bruto": 124189.7,
-    "num_pagamentos": 6194,
-    "total_taxas": 8693.279,
+    "total_bruto": 126555.6,
+    "num_pagamentos": 6312,
+    "total_taxas": 8858.892,
     "descricao": "Informações do backend sobre solicitações de pagamento para o Payment Processor Default."
   },
   "pagamentos_realizados_fallback": {
-    "total_bruto": 939061.8,
-    "num_pagamentos": 46836,
-    "total_taxas": 93906.18,
+    "total_bruto": 939563.05,
+    "num_pagamentos": 46861,
+    "total_taxas": 93956.305,
     "descricao": "Informações do backend sobre solicitações de pagamento para o Payment Processor Fallback."
   }
 }
