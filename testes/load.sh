@@ -3,7 +3,7 @@ set -x
 
 workers=1
 
-nos=3
+nos=2
 
 diretorio=teste-${nos}-nos
 

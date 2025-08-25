@@ -7,11 +7,11 @@ x-backend-templates:
     deploy:
       resources:
         limits:
-          cpus: "0.4"
-          memory: "110MB"
+          cpus: "0.6"
+          memory: "160MB"
 
   app-env: &app-env  
-    PAIR_NBR: 3
+    PAIR_NBR: 2
     PAYMENT_PROCESSORS: 
     CONN_TO: "60"
     REQ_TO: "15"
@@ -33,7 +33,6 @@ services:
     depends_on:
       - node01
       - node02
-      - node03  
     networks:
       - rinha-net
       - payment-processor
@@ -60,15 +59,6 @@ services:
     environment:
           <<: *app-env
           NODE_ID: 2
-
-  node03: 
-    <<: *app
-    container_name: node03
-    hostname: node03
-    environment:
-          <<: *app-env
-          NODE_ID: 3
-
 
 networks:
   payment-processor:
