@@ -1,9 +1,9 @@
 #!/bin/bash
 set -x
 
-workers=2
+workers=1
 
-nos=4
+nos=3
 
 diretorio=teste-${nos}-nos
 
@@ -12,7 +12,7 @@ MAX_REQUESTS=603
 
 mkdir $diretorio
 
-while [ $workers -le 100 ]; do
+while [ $workers -le 9 ]; do
 
     echo PAYMENT_PROCESSORS: \"${workers}\" > env.envfile
     docker compose -f ../../rinha-de-backend-2025/payment-processor/docker-compose.yml down

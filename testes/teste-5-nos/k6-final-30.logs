@@ -1,0 +1,7 @@
+time="2025-08-24T18:02:57Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T18:02:57Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 293 vs 293" source=console
+time="2025-08-24T18:02:57Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 1226 vs 1840" source=console
+time="2025-08-24T18:03:08Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T18:03:08Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 162 vs 324" source=console
+time="2025-08-24T18:03:08Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 0 vs 0" source=console
+time="2025-08-24T18:05:30Z" level=info msg="summaries from 2025-08-24T17:59:30.740Z to 2025-08-24T18:05:30.740Z" source=console

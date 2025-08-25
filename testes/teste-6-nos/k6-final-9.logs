@@ -1,0 +1,58 @@
+time="2025-08-24T20:32:19Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:32:19Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 0 vs 0" source=console
+time="2025-08-24T20:32:19Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 77 vs 92" source=console
+time="2025-08-24T20:32:30Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:32:30Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 0 vs 0" source=console
+time="2025-08-24T20:32:30Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 282 vs 339" source=console
+time="2025-08-24T20:32:52Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:32:52Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 166 vs 166" source=console
+time="2025-08-24T20:32:52Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 465 vs 607" source=console
+time="2025-08-24T20:33:14Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:33:14Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 256 vs 256" source=console
+time="2025-08-24T20:33:14Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 684 vs 911" source=console
+time="2025-08-24T20:33:25Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:33:25Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 381 vs 381" source=console
+time="2025-08-24T20:33:25Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 813 vs 1083" source=console
+time="2025-08-24T20:33:36Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:33:36Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 395 vs 395" source=console
+time="2025-08-24T20:33:36Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 940 vs 1255" source=console
+time="2025-08-24T20:33:47Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:33:47Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 167 vs 167" source=console
+time="2025-08-24T20:33:47Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 656 vs 875" source=console
+time="2025-08-24T20:33:58Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:33:58Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 0 vs 0" source=console
+time="2025-08-24T20:33:58Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 338 vs 450" source=console
+time="2025-08-24T20:34:09Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:34:09Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 0 vs 0" source=console
+time="2025-08-24T20:34:09Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 334 vs 445" source=console
+time="2025-08-24T20:34:20Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:34:20Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 0 vs 0" source=console
+time="2025-08-24T20:34:20Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 1182 vs 1577" source=console
+time="2025-08-24T20:34:42Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:34:42Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 200 vs 200" source=console
+time="2025-08-24T20:34:42Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 1423 vs 1897" source=console
+time="2025-08-24T20:35:15Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:35:15Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 0 vs 0" source=console
+time="2025-08-24T20:35:15Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 1427 vs 1711" source=console
+time="2025-08-24T20:35:26Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:35:26Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 0 vs 0" source=console
+time="2025-08-24T20:35:26Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 3717 vs 4461" source=console
+time="2025-08-24T20:35:48Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:35:48Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 0 vs 0" source=console
+time="2025-08-24T20:35:48Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 4142 vs 4969" source=console
+time="2025-08-24T20:35:59Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:35:59Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 0 vs 0" source=console
+time="2025-08-24T20:35:59Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 4358 vs 5229" source=console
+time="2025-08-24T20:36:10Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:36:10Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 0 vs 0" source=console
+time="2025-08-24T20:36:10Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 4575 vs 5491" source=console
+time="2025-08-24T20:36:21Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:36:21Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 952 vs 952" source=console
+time="2025-08-24T20:36:21Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 3580 vs 4533" source=console
+time="2025-08-24T20:36:32Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:36:32Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 1566 vs 1566" source=console
+time="2025-08-24T20:36:32Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 2976 vs 3970" source=console
+time="2025-08-24T20:37:05Z" level=warning msg="================ [inconsistências encontradas] ================" source=console
+time="2025-08-24T20:37:05Z" level=warning msg="backend.default.totalRequests vs default.totalRequests: 119 vs 119" source=console
+time="2025-08-24T20:37:05Z" level=warning msg="backend.fallback.totalRequests vs fallback.totalRequests: 3383 vs 4510" source=console
+time="2025-08-24T20:37:15Z" level=info msg="summaries from 2025-08-24T20:31:15.828Z to 2025-08-24T20:37:15.828Z" source=console
