@@ -1,13 +1,13 @@
 {
-  "timestamp": "2025-08-25T01:29:42.035Z",
+  "timestamp": "2025-08-25T02:31:30.130Z",
   "participante": "anonymous",
-  "total_liquido": 0,
-  "total_bruto": 0,
-  "total_taxas": 0,
+  "total_liquido": 593509.674,
+  "total_bruto": 555806.05,
+  "total_taxas": 52831.75,
   "descricao": "'total_liquido' é sua pontuação final. Equivale ao seu lucro. Fórmula: total_liquido + (total_liquido * p99.bonus) - (total_liquido * multa.porcentagem)",
   "p99": {
-    "valor": "28.69ms",
-    "bonus": "0%",
+    "valor": "1.88ms",
+    "bonus": "18%",
     "max_requests": "603",
     "descricao": "Fórmula para o bônus: max((11 - p99.valor) * 0.02, 0)"
   },
@@ -24,26 +24,26 @@
     "descricao": "Se 'lag' for negativo, significa que seu backend registrou mais pagamentos do que solicitado, automaticamente desclassificando sua submissão!"
   },
   "lag": {
-    "num_pagamentos_total": 0,
-    "num_pagamentos_solicitados": 0,
-    "lag": 0,
+    "num_pagamentos_total": 27721,
+    "num_pagamentos_solicitados": 90509,
+    "lag": 62788,
     "descricao": "Lag é a diferença entre a quantidade de solicitações de pagamentos e o que foi realmente computado pelo backend. Mostra a perda de pagamentos possivelmente por estarem enfileirados."
   },
   "pagamentos_solicitados": {
-    "qtd_sucesso": 0,
-    "qtd_falha": 90651,
+    "qtd_sucesso": 90509,
+    "qtd_falha": 0,
     "descricao": "'qtd_sucesso' foram requests bem sucedidos para 'POST /payments' e 'qtd_falha' os requests com erro."
   },
   "pagamentos_realizados_default": {
-    "total_bruto": 0,
-    "num_pagamentos": 0,
-    "total_taxas": 0,
+    "total_bruto": 91628.5,
+    "num_pagamentos": 4570,
+    "total_taxas": 6413.995,
     "descricao": "Informações do backend sobre solicitações de pagamento para o Payment Processor Default."
   },
   "pagamentos_realizados_fallback": {
-    "total_bruto": 0,
-    "num_pagamentos": 0,
-    "total_taxas": 0,
+    "total_bruto": 464177.55,
+    "num_pagamentos": 23151,
+    "total_taxas": 46417.755,
     "descricao": "Informações do backend sobre solicitações de pagamento para o Payment Processor Fallback."
   }
 }
